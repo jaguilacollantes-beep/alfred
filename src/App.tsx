@@ -143,11 +143,24 @@ function App() {
     });
 
     const data = await response.json();
-    const respuesta = data.text || data.answer || JSON.stringify(data);
+    const respuestaRaw = data.text || data.answer || JSON.stringify(data);
+
+    const tieneRecordatorio = respuestaRaw.includes("[RECORDATORIO:");
+    const tituloSugerido = tieneRecordatorio
+      ? respuestaRaw.match(/\[RECORDATORIO: (.+?)\]/)?.[1] || ""
+      : "";
+    const respuestaLimpia = respuestaRaw.replace(/\[RECORDATORIO:.*?\]/g, "").trim();
+
     const nuevoIndex = historialActualizado.length;
-    setMensajes([...historialActualizado, { rol: "alfred", texto: respuesta }]);
-    setRecordatorioActivo(nuevoIndex);
-    setFormRecordatorio({ titulo: "", fecha: "", descripcion: pregunta });
+    setMensajes([...historialActualizado, { rol: "alfred", texto: respuestaLimpia }]);
+
+    if (tieneRecordatorio) {
+      setRecordatorioActivo(nuevoIndex);
+      setFormRecordatorio({ titulo: tituloSugerido, fecha: "", descripcion: pregunta });
+    } else {
+      setRecordatorioActivo(null);
+    }
+
     setCargando(false);
   }
 
@@ -248,7 +261,7 @@ function App() {
           </div>
           <div style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
             <div style={{ fontWeight: "700", color: "#FF6B6B", fontSize: 13, marginBottom: 6 }}>🤖 ALFRED · Asistente IA</div>
-            <div style={{ color: "#2D3436", fontSize: 14, lineHeight: 1.5 }}>¡Felicidades! Lo primero: renueva tu DNI, solicita el Bono Cultural y abre una cuenta bancaria de adulto 🎂</div>
+            <div style={{ color: "#2D3436", fontSize: 14, lineHeight: 1.5 }}>¡Felicidades! Lo primero: renueva tu DNI, solicita el Bono Cultural y abre una cuenta bancaria 🎂</div>
           </div>
         </div>
       </div>
@@ -356,11 +369,11 @@ function App() {
                 </div>
               </div>
 
-              {/* BOTÓN RECORDATORIO después de cada respuesta de ALFRED */}
+              {/* RECORDATORIO INTELIGENTE — solo cuando ALFRED lo detecta */}
               {m.rol === "alfred" && recordatorioActivo === i && (
                 <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 16, marginLeft: 4 }}>
                   <div style={{ background: "#fff", border: "2px solid #FF6B6B", borderRadius: 16, padding: 16, maxWidth: "80%" }}>
-                    <div style={{ fontSize: 13, fontWeight: "700", color: "#FF6B6B", marginBottom: 10 }}>📅 ¿Quieres añadir un recordatorio?</div>
+                    <div style={{ fontSize: 13, fontWeight: "700", color: "#FF6B6B", marginBottom: 10 }}>📅 ALFRED detectó una acción importante — ¿quieres añadir un recordatorio?</div>
                     <input
                       placeholder="Título del recordatorio"
                       value={formRecordatorio.titulo}
