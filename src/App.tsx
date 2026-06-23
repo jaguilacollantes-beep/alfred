@@ -25,8 +25,9 @@ function App() {
     setPregunta("");
     setCargando(true);
 
-const ultimos5 = historialActualizado.slice(-5);
-const historial = ultimos5
+    const historial = historialActualizado
+      .slice(-5)
+      .map((m) => `${m.rol === "usuario" ? "Usuario" : "ALFRED"}: ${m.texto}`)
       .join("\n");
 
     const response = await fetch("https://alfrediaactivo1.app.n8n.cloud/webhook/Chat", {
@@ -61,7 +62,7 @@ const historial = ultimos5
       </div>
 
       <div style={{ padding: "40px", maxWidth: 900, margin: "0 auto" }}>
-        
+
         <h2 style={{ textAlign: "center", marginBottom: 24, color: "#1a1a2e" }}>¿En qué puedo ayudarte?</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 40 }}>
           {temas.map((t) => (
