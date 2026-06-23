@@ -25,8 +25,8 @@ function App() {
     setPregunta("");
     setCargando(true);
 
-    const historial = historialActualizado
-      .map((m) => `${m.rol === "usuario" ? "Usuario" : "ALFRED"}: ${m.texto}`)
+const ultimos5 = historialActualizado.slice(-5);
+const historial = ultimos5
       .join("\n");
 
     const response = await fetch("https://alfrediaactivo1.app.n8n.cloud/webhook/Chat", {
