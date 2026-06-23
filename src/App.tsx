@@ -16,7 +16,7 @@ const itinerarios = [
       { fase: "Documentación obligatoria", items: ["Renueva el DNI de adulto — cita en interior.gob.es", "Saca el pasaporte si no tienes — 30€ y 10 años de vigencia", "Considera sacarte el carné de conducir (B)", "Crea tu cuenta en importass.gob.es"] },
       { fase: "Finanzas personales", items: ["Abre una cuenta bancaria de adulto sin comisiones", "Aprende la regla 50/30/20: necesidades/ocio/ahorro", "Descarga una app de control de gastos", "Si trabajas: guarda tus nóminas y entiende tu nómina"] },
       { fase: "Salud y derechos", items: ["Solicita tu tarjeta sanitaria propia en tu centro de salud", "Pide el Bono Cultural Joven — 400€ en boncultura.gob.es", "Conoce tus nuevos derechos: votar, firmar contratos, independencia legal", "Eres penalmente responsable como adulto"] },
-      { fase: "Educación y futuro", items: ["Solicita beca MEC si vas a la universidad", "Investiga el Carné Joven Europeo para descuentos", "Considera FP si no vas a la universidad", "Aprende habilidades básicas del hogar: cocinar, limpiar, gestionar suministros"] },
+      { fase: "Educación y futuro", items: ["Solicita beca MEC si vas a la universidad", "Investiga el Carné Joven Europeo para descuentos", "Considera FP si no vas a la universidad", "Aprende habilidades básicas del hogar"] },
     ],
   },
   {
@@ -76,12 +76,51 @@ type Mensaje = {
   texto: string;
 };
 
+type Recordatorio = {
+  titulo: string;
+  fecha: string;
+  descripcion: string;
+};
+
+function generarICS(recordatorio: Recordatorio): void {
+  const fecha = recordatorio.fecha.replace(/-/g, "");
+  const ahora = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+  const ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//ALFRED//ES",
+    "BEGIN:VEVENT",
+    `DTSTART;VALUE=DATE:${fecha}`,
+    `DTEND;VALUE=DATE:${fecha}`,
+    `DTSTAMP:${ahora}`,
+    `SUMMARY:${recordatorio.titulo}`,
+    `DESCRIPTION:${recordatorio.descripcion} — Recordatorio creado por ALFRED`,
+    "BEGIN:VALARM",
+    "TRIGGER:-P1D",
+    "ACTION:DISPLAY",
+    `DESCRIPTION:Recordatorio: ${recordatorio.titulo}`,
+    "END:VALARM",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+
+  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${recordatorio.titulo.replace(/\s+/g, "_")}.ics`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 function App() {
   const [pregunta, setPregunta] = useState("");
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [cargando, setCargando] = useState(false);
   const [aceptado, setAceptado] = useState(false);
   const [itinerarioActivo, setItinerarioActivo] = useState<number | null>(null);
+  const [recordatorioActivo, setRecordatorioActivo] = useState<number | null>(null);
+  const [formRecordatorio, setFormRecordatorio] = useState<Recordatorio>({ titulo: "", fecha: "", descripcion: "" });
 
   async function preguntar() {
     if (!pregunta.trim()) return;
@@ -90,6 +129,7 @@ function App() {
     setMensajes(historialActualizado);
     setPregunta("");
     setCargando(true);
+    setRecordatorioActivo(null);
 
     const historial = historialActualizado
       .slice(-5)
@@ -104,7 +144,10 @@ function App() {
 
     const data = await response.json();
     const respuesta = data.text || data.answer || JSON.stringify(data);
+    const nuevoIndex = historialActualizado.length;
     setMensajes([...historialActualizado, { rol: "alfred", texto: respuesta }]);
+    setRecordatorioActivo(nuevoIndex);
+    setFormRecordatorio({ titulo: "", fecha: "", descripcion: pregunta });
     setCargando(false);
   }
 
@@ -242,15 +285,12 @@ function App() {
                 <div style={{ fontWeight: "700", color: "#2D3436", fontSize: 15, marginBottom: 6 }}>{it.titulo}</div>
                 <div style={{ fontSize: 12, color: "#888" }}>{it.pasos.length} fases · {it.pasos.reduce((a, f) => a + f.items.length, 0)} pasos</div>
                 {itinerarioActivo === i && (
-                  <div style={{ marginTop: 8, background: it.color, color: it.color === "#FFE66D" ? "#2D3436" : "#fff", borderRadius: 12, padding: "4px 10px", fontSize: 11, fontWeight: "700", display: "inline-block" }}>
-                    ✓ Abierto
-                  </div>
+                  <div style={{ marginTop: 8, background: it.color, color: it.color === "#FFE66D" ? "#2D3436" : "#fff", borderRadius: 12, padding: "4px 10px", fontSize: 11, fontWeight: "700", display: "inline-block" }}>✓ Abierto</div>
                 )}
               </div>
             ))}
           </div>
 
-          {/* PANEL ITINERARIO ACTIVO */}
           {itinerarioActivo !== null && (
             <div id="itinerario-panel" style={{ background: "#FAFAFA", borderRadius: 24, padding: 32, border: `2px solid ${itinerarios[itinerarioActivo].color}33`, marginBottom: 16 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
@@ -266,7 +306,6 @@ function App() {
                   💬 Preguntarle a ALFRED →
                 </button>
               </div>
-
               <div className="fases-grid" style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(itinerarios[itinerarioActivo].pasos.length, 4)}, 1fr)`, gap: 16 }}>
                 {itinerarios[itinerarioActivo].pasos.map((fase, fi) => (
                   <div key={fi} style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
@@ -309,13 +348,53 @@ function App() {
             </div>
           )}
           {mensajes.map((m, i) => (
-            <div key={i} style={{ marginBottom: 16, display: "flex", justifyContent: m.rol === "usuario" ? "flex-end" : "flex-start" }}>
-              <div style={{ maxWidth: "80%", padding: "14px 18px", borderRadius: m.rol === "usuario" ? "20px 20px 4px 20px" : "20px 20px 20px 4px", background: m.rol === "usuario" ? "#FF6B6B" : "#F8F9FA", color: m.rol === "usuario" ? "#fff" : "#2D3436", lineHeight: 1.6, whiteSpace: "pre-wrap", fontSize: 15 }}>
-                {m.rol === "alfred" && <div style={{ fontWeight: "700", marginBottom: 6, color: "#FF6B6B", fontSize: 12 }}>🤖 ALFRED · Asistente IA</div>}
-                {m.texto}
+            <div key={i}>
+              <div style={{ marginBottom: 8, display: "flex", justifyContent: m.rol === "usuario" ? "flex-end" : "flex-start" }}>
+                <div style={{ maxWidth: "80%", padding: "14px 18px", borderRadius: m.rol === "usuario" ? "20px 20px 4px 20px" : "20px 20px 20px 4px", background: m.rol === "usuario" ? "#FF6B6B" : "#F8F9FA", color: m.rol === "usuario" ? "#fff" : "#2D3436", lineHeight: 1.6, whiteSpace: "pre-wrap", fontSize: 15 }}>
+                  {m.rol === "alfred" && <div style={{ fontWeight: "700", marginBottom: 6, color: "#FF6B6B", fontSize: 12 }}>🤖 ALFRED · Asistente IA</div>}
+                  {m.texto}
+                </div>
               </div>
+
+              {/* BOTÓN RECORDATORIO después de cada respuesta de ALFRED */}
+              {m.rol === "alfred" && recordatorioActivo === i && (
+                <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 16, marginLeft: 4 }}>
+                  <div style={{ background: "#fff", border: "2px solid #FF6B6B", borderRadius: 16, padding: 16, maxWidth: "80%" }}>
+                    <div style={{ fontSize: 13, fontWeight: "700", color: "#FF6B6B", marginBottom: 10 }}>📅 ¿Quieres añadir un recordatorio?</div>
+                    <input
+                      placeholder="Título del recordatorio"
+                      value={formRecordatorio.titulo}
+                      onChange={e => setFormRecordatorio({ ...formRecordatorio, titulo: e.target.value })}
+                      style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #eee", fontSize: 13, marginBottom: 8, boxSizing: "border-box" as const }}
+                    />
+                    <input
+                      type="date"
+                      value={formRecordatorio.fecha}
+                      onChange={e => setFormRecordatorio({ ...formRecordatorio, fecha: e.target.value })}
+                      style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #eee", fontSize: 13, marginBottom: 10, boxSizing: "border-box" as const }}
+                    />
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button
+                        onClick={() => {
+                          if (!formRecordatorio.titulo || !formRecordatorio.fecha) return;
+                          generarICS(formRecordatorio);
+                          setRecordatorioActivo(null);
+                        }}
+                        style={{ background: "#FF6B6B", color: "#fff", border: "none", borderRadius: 10, padding: "8px 16px", fontSize: 13, fontWeight: "700", cursor: "pointer", flex: 1 }}>
+                        📥 Descargar .ics
+                      </button>
+                      <button
+                        onClick={() => setRecordatorioActivo(null)}
+                        style={{ background: "#f0f0f0", color: "#888", border: "none", borderRadius: 10, padding: "8px 12px", fontSize: 13, cursor: "pointer" }}>
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
+
           {cargando && (
             <div style={{ display: "flex", justifyContent: "flex-start" }}>
               <div style={{ background: "#F8F9FA", borderRadius: "20px 20px 20px 4px", padding: "14px 18px", color: "#888", fontSize: 15 }}>
