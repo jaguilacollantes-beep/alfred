@@ -7,6 +7,64 @@ const temas = [
   { icono: "✈️", titulo: "Viajes", descripcion: "Documentación, seguros", color: "#A29BFE" },
 ];
 
+const itinerarios = [
+  {
+    icono: "🎓",
+    titulo: "Llego a la Universidad",
+    color: "#FF6B6B",
+    pasos: [
+      { fase: "Antes de empezar", items: ["Matriculación oficial y pago de tasas", "Solicitar beca MEC en becas.educacion.gob.es", "Abrir cuenta bancaria sin comisiones", "Tramitar tarjeta de transporte joven", "Conseguir el carné de estudiante"] },
+      { fase: "Primeras semanas", items: ["Empadronarte si te mudas de ciudad", "Solicitar tarjeta sanitaria", "Activar correo universitario y plataformas", "Conocer servicios de la universidad", "Solicitar el Bono Cultural si eres menor de 23"] },
+      { fase: "Durante el curso", items: ["Declaración de la renta si trabajas", "Renovar la beca cada año", "Solicitar Erasmus si quieres estudiar en el extranjero"] },
+    ],
+    pregunta: "Voy a empezar la universidad, ¿cuáles son los pasos más importantes que debo seguir?",
+  },
+  {
+    icono: "🏙️",
+    titulo: "Me mudo a una nueva ciudad",
+    color: "#4ECDC4",
+    pasos: [
+      { fase: "Antes de mudarte", items: ["Buscar piso en Idealista o Fotocasa", "Revisar el contrato de alquiler", "Comprobar estado del piso con fotos", "Calcular gastos: alquiler + suministros + comunidad"] },
+      { fase: "Primera semana", items: ["Empadronarte en el ayuntamiento", "Cambiar domicilio en banco y Hacienda", "Buscar centro de salud y médico de cabecera", "Dar de alta suministros si no están incluidos"] },
+      { fase: "Primer mes", items: ["Sacar abono de transporte mensual", "Revisar primera factura de suministros", "Conocer el barrio y servicios cercanos"] },
+    ],
+    pregunta: "Me mudo a una nueva ciudad, ¿qué pasos debo seguir para instalarse correctamente?",
+  },
+  {
+    icono: "🎨",
+    titulo: "Quiero el Bono Cultural",
+    color: "#A29BFE",
+    pasos: [
+      { fase: "Requisitos", items: ["Tener entre 18 y 23 años", "Ser ciudadano español o residente legal", "No haber disfrutado del bono anteriormente"] },
+      { fase: "Pasos para solicitarlo", items: ["Accede a boncultura.gob.es", "Regístrate con tu DNI y datos bancarios", "Verifica tu identidad con Cl@ve", "Recibes 400€ en tu cuenta virtual en 24-48h"] },
+      { fase: "Cómo usarlo", items: ["Libros, música, cine, teatro, videojuegos", "Válido en Amazon, Fnac, El Corte Inglés", "No es transferible ni canjeable en efectivo", "Úsalo antes de que caduque"] },
+    ],
+    pregunta: "¿Cómo puedo solicitar el Bono Cultural Joven y cómo funciona?",
+  },
+  {
+    icono: "🏠",
+    titulo: "Voy a alquilar un piso",
+    color: "#FFE66D",
+    pasos: [
+      { fase: "Antes de firmar", items: ["Pedir el certificado energético", "Verificar que el casero es el propietario", "Revisar cláusulas abusivas", "Calcular: fianza + agencia + primer mes"] },
+      { fase: "Al firmar", items: ["Hacer inventario fotográfico del piso", "Registrar el contrato en la Comunidad Autónoma", "Guardar copia del contrato firmado"] },
+      { fase: "Tus derechos", items: ["El casero no puede subir más del IPC anual", "Tienes derecho a renovación hasta 5 años", "Si vende el piso tienes derecho de tanteo", "Servicio de Arbitraje gratuito si hay problemas"] },
+    ],
+    pregunta: "Voy a alquilar mi primer piso, ¿qué debo revisar y cuáles son mis derechos?",
+  },
+  {
+    icono: "✈️",
+    titulo: "Voy a viajar al extranjero",
+    color: "#55EFC4",
+    pasos: [
+      { fase: "Dentro de la UE", items: ["Solo necesitas el DNI en vigor", "Tarjeta Sanitaria Europea — gratis en seg-social.es", "Avisa a tu banco para evitar bloqueos", "Descarga apps de transporte del destino"] },
+      { fase: "Fuera de la UE", items: ["Pasaporte con mínimo 6 meses de validez", "Visado si es necesario — consulta exteriores.gob.es", "Seguro de viaje recomendado", "Regístrate en el MAEC si el destino tiene riesgo"] },
+      { fase: "Siempre", items: ["Fotocopia del pasaporte guardada aparte", "Número de emergencias del país", "Contacto de la embajada española", "Seguro médico internacional recomendado"] },
+    ],
+    pregunta: "Voy a viajar al extranjero por primera vez, ¿qué documentación y pasos necesito?",
+  },
+];
+
 type Mensaje = {
   rol: "usuario" | "alfred";
   texto: string;
@@ -17,10 +75,12 @@ function App() {
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [cargando, setCargando] = useState(false);
   const [aceptado, setAceptado] = useState(false);
+  const [itinerarioActivo, setItinerarioActivo] = useState<number | null>(null);
 
-  async function preguntar() {
-    if (!pregunta.trim()) return;
-    const nuevaMensaje: Mensaje = { rol: "usuario", texto: pregunta };
+  async function preguntar(textoPregunta?: string) {
+    const texto = textoPregunta || pregunta;
+    if (!texto.trim()) return;
+    const nuevaMensaje: Mensaje = { rol: "usuario", texto };
     const historialActualizado = [...mensajes, nuevaMensaje];
     setMensajes(historialActualizado);
     setPregunta("");
@@ -43,6 +103,16 @@ function App() {
     setCargando(false);
   }
 
+  function abrirItinerario(index: number) {
+    setItinerarioActivo(index);
+    const it = itinerarios[index];
+    document.getElementById("itinerario-panel")?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => {
+      preguntar(it.pregunta);
+      document.getElementById("chat")?.scrollIntoView({ behavior: "smooth" });
+    }, 800);
+  }
+
   function preguntaRapida(texto: string) {
     setPregunta(texto);
     document.getElementById("chat")?.scrollIntoView({ behavior: "smooth" });
@@ -63,14 +133,11 @@ function App() {
             <div>📋 Consulta siempre las fuentes oficiales para decisiones importantes</div>
             <div>🔒 Tus conversaciones se guardan para mejorar el servicio</div>
           </div>
-          <button
-            onClick={() => setAceptado(true)}
+          <button onClick={() => setAceptado(true)}
             style={{ background: "#FF6B6B", color: "#fff", border: "none", borderRadius: 32, padding: "16px 40px", fontSize: 16, fontWeight: "700", cursor: "pointer", width: "100%", boxShadow: "0 8px 24px rgba(255,107,107,0.4)" }}>
             Entendido, empezar →
           </button>
-          <div style={{ marginTop: 16, fontSize: 11, color: "#aaa" }}>
-            Solo para mayores de 18 años · Proyecto ISDI AIEx 2026
-          </div>
+          <div style={{ marginTop: 16, fontSize: 11, color: "#aaa" }}>Solo para mayores de 18 años · Proyecto ISDI AIEx 2026</div>
         </div>
       </div>
     );
@@ -78,17 +145,18 @@ function App() {
 
   return (
     <div style={{ fontFamily: "'Segoe UI', sans-serif", minHeight: "100vh", background: "#fff" }}>
-
       <style>{`
         @media (max-width: 768px) {
           .hero-grid { grid-template-columns: 1fr !important; }
           .hero-preview { display: none !important; }
           .hero-title { font-size: 36px !important; }
           .temas-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .itinerarios-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .hero-padding { padding: 32px 20px !important; }
           .section-padding { padding: 40px 20px !important; }
           .chat-padding { padding: 40px 20px !important; }
           .header-padding { padding: 16px 20px !important; }
+          .itinerario-fases { grid-template-columns: 1fr !important; }
         }
       `}</style>
 
@@ -117,14 +185,12 @@ function App() {
           <p style={{ fontSize: 17, color: "#636e72", lineHeight: 1.6, marginBottom: 32 }}>
             La guía definitiva para jóvenes de 18 a 25 años. Trámites, finanzas, vivienda y viajes bajo control.
           </p>
-          <button
-            onClick={() => document.getElementById("chat")?.scrollIntoView({ behavior: "smooth" })}
+          <button onClick={() => document.getElementById("itinerarios")?.scrollIntoView({ behavior: "smooth" })}
             style={{ background: "#FF6B6B", color: "#fff", border: "none", borderRadius: 32, padding: "16px 32px", fontSize: 16, fontWeight: "700", cursor: "pointer", boxShadow: "0 8px 24px rgba(255,107,107,0.4)", width: "100%", maxWidth: 280 }}>
             Empieza gratis →
           </button>
           <div style={{ marginTop: 20, color: "#aaa", fontSize: 13 }}>🎓 Proyecto ISDI AIEx 2026</div>
         </div>
-
         <div className="hero-preview" style={{ background: "#FFF5F5", borderRadius: 24, padding: 28, boxShadow: "0 20px 60px rgba(255,107,107,0.15)" }}>
           <div style={{ background: "#fff", borderRadius: 16, padding: 20, marginBottom: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
             <div style={{ fontWeight: "700", color: "#FF6B6B", fontSize: 13, marginBottom: 6 }}>🤖 ALFRED · Asistente IA</div>
@@ -135,7 +201,7 @@ function App() {
           </div>
           <div style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
             <div style={{ fontWeight: "700", color: "#FF6B6B", fontSize: 13, marginBottom: 6 }}>🤖 ALFRED · Asistente IA</div>
-            <div style={{ color: "#2D3436", fontSize: 14, lineHeight: 1.5 }}>¡Claro! Necesitas DNI en vigor y contrato de alquiler. Es gratis 🏛️ ⚠️ Consulta siempre tu ayuntamiento para información oficial.</div>
+            <div style={{ color: "#2D3436", fontSize: 14, lineHeight: 1.5 }}>¡Claro! Necesitas DNI en vigor y contrato de alquiler. Es gratis 🏛️ ⚠️ Consulta tu ayuntamiento para información oficial.</div>
           </div>
         </div>
       </div>
@@ -147,8 +213,7 @@ function App() {
           <p style={{ textAlign: "center", color: "#888", marginBottom: 32, fontSize: 15 }}>Toca cualquier área para empezar</p>
           <div className="temas-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
             {temas.map((t) => (
-              <div key={t.titulo}
-                onClick={() => preguntaRapida(`¿Puedes ayudarme con ${t.titulo.toLowerCase()}?`)}
+              <div key={t.titulo} onClick={() => preguntaRapida(`¿Puedes ayudarme con ${t.titulo.toLowerCase()}?`)}
                 style={{ background: "#fff", borderRadius: 20, padding: 24, textAlign: "center", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", cursor: "pointer", borderTop: `4px solid ${t.color}` }}>
                 <div style={{ fontSize: 40, marginBottom: 10 }}>{t.icono}</div>
                 <div style={{ fontWeight: "700", marginBottom: 6, color: "#2D3436", fontSize: 15 }}>{t.titulo}</div>
@@ -156,6 +221,63 @@ function App() {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* ITINERARIOS */}
+      <div id="itinerarios" className="section-padding" style={{ padding: "60px 40px" }}>
+        <div style={{ maxWidth: 960, margin: "0 auto" }}>
+          <h2 style={{ textAlign: "center", fontSize: 28, fontWeight: "800", marginBottom: 8, color: "#2D3436" }}>🗺️ Itinerarios de vida adulta</h2>
+          <p style={{ textAlign: "center", color: "#888", marginBottom: 32, fontSize: 15 }}>Elige tu momento vital y te guío paso a paso</p>
+          <div className="itinerarios-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 40 }}>
+            {itinerarios.map((it, i) => (
+              <div key={it.titulo} onClick={() => abrirItinerario(i)}
+                style={{ background: "#fff", borderRadius: 20, padding: 24, cursor: "pointer", boxShadow: itinerarioActivo === i ? `0 8px 32px ${it.color}44` : "0 4px 16px rgba(0,0,0,0.06)", border: itinerarioActivo === i ? `2px solid ${it.color}` : "2px solid transparent", transition: "all 0.2s" }}>
+                <div style={{ fontSize: 36, marginBottom: 10 }}>{it.icono}</div>
+                <div style={{ fontWeight: "700", color: "#2D3436", fontSize: 15, marginBottom: 6 }}>{it.titulo}</div>
+                <div style={{ fontSize: 12, color: "#888" }}>{it.pasos.length} fases · {it.pasos.reduce((a, f) => a + f.items.length, 0)} pasos</div>
+                {itinerarioActivo === i && (
+                  <div style={{ marginTop: 8, background: it.color, color: "#fff", borderRadius: 12, padding: "4px 10px", fontSize: 11, fontWeight: "700", display: "inline-block" }}>
+                    ✓ Activo
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* PANEL DEL ITINERARIO ACTIVO */}
+          {itinerarioActivo !== null && (
+            <div id="itinerario-panel" style={{ background: "#FAFAFA", borderRadius: 24, padding: 32, border: `2px solid ${itinerarios[itinerarioActivo].color}22` }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+                <div style={{ fontSize: 40 }}>{itinerarios[itinerarioActivo].icono}</div>
+                <div>
+                  <div style={{ fontSize: 22, fontWeight: "800", color: "#2D3436" }}>{itinerarios[itinerarioActivo].titulo}</div>
+                  <div style={{ fontSize: 14, color: "#888" }}>Guía paso a paso · ALFRED te ayuda en el chat</div>
+                </div>
+              </div>
+              <div className="itinerario-fases" style={{ display: "grid", gridTemplateColumns: `repeat(${itinerarios[itinerarioActivo].pasos.length}, 1fr)`, gap: 16 }}>
+                {itinerarios[itinerarioActivo].pasos.map((fase, fi) => (
+                  <div key={fi} style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+                    <div style={{ fontWeight: "700", color: itinerarios[itinerarioActivo].color, fontSize: 13, marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                      {fi + 1}. {fase.fase}
+                    </div>
+                    {fase.items.map((item, ii) => (
+                      <div key={ii} style={{ display: "flex", gap: 8, marginBottom: 8, fontSize: 13, color: "#636e72", lineHeight: 1.4 }}>
+                        <span style={{ color: itinerarios[itinerarioActivo].color, flexShrink: 0 }}>✓</span>
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 20, textAlign: "center" }}>
+                <button onClick={() => { preguntar(itinerarios[itinerarioActivo].pregunta); document.getElementById("chat")?.scrollIntoView({ behavior: "smooth" }); }}
+                  style={{ background: itinerarios[itinerarioActivo].color, color: "#fff", border: "none", borderRadius: 24, padding: "12px 28px", fontSize: 14, fontWeight: "700", cursor: "pointer" }}>
+                  💬 Preguntarle más a ALFRED sobre esto →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -177,7 +299,7 @@ function App() {
           {mensajes.length === 0 && (
             <div style={{ textAlign: "center", color: "#aaa", padding: 32 }}>
               <div style={{ fontSize: 44, marginBottom: 12 }}>💬</div>
-              <div style={{ fontSize: 15, color: "#636e72" }}>Escribe tu primera pregunta o elige un tema</div>
+              <div style={{ fontSize: 15, color: "#636e72" }}>Elige un itinerario arriba o escribe tu pregunta</div>
             </div>
           )}
           {mensajes.map((m, i) => (
@@ -203,23 +325,20 @@ function App() {
             style={{ flex: 1, padding: "14px 18px", borderRadius: 16, border: "2px solid #eee", fontSize: 15, outline: "none" }}
             onFocus={e => e.target.style.border = "2px solid #FF6B6B"}
             onBlur={e => e.target.style.border = "2px solid #eee"} />
-          <button onClick={preguntar} disabled={cargando}
+          <button onClick={() => preguntar()} disabled={cargando}
             style={{ background: "#FF6B6B", color: "#fff", border: "none", borderRadius: 16, padding: "14px 22px", fontSize: 15, cursor: "pointer", fontWeight: "700", boxShadow: "0 4px 16px rgba(255,107,107,0.4)" }}>
             {cargando ? "⏳" : "→"}
           </button>
         </div>
 
-        {/* AVISO LEGAL */}
         <div style={{ marginTop: 16, padding: 16, background: "#FFF5F5", borderRadius: 12, fontSize: 12, color: "#aaa", textAlign: "center", lineHeight: 1.6 }}>
-          ⚠️ La información proporcionada por ALFRED es orientativa y no sustituye asesoramiento profesional ni información oficial. Consulta siempre las fuentes oficiales para decisiones importantes.
+          ⚠️ La información proporcionada por ALFRED es orientativa y no sustituye asesoramiento profesional ni información oficial.
         </div>
       </div>
 
       {/* FOOTER */}
       <div style={{ textAlign: "center", padding: "24px", color: "#aaa", fontSize: 12, borderTop: "1px solid #f0f0f0" }}>
-        <div style={{ marginBottom: 6 }}>
-          🤖 ALFRED es un asistente de Inteligencia Artificial. La información proporcionada es orientativa y no sustituye asesoramiento profesional.
-        </div>
+        <div style={{ marginBottom: 6 }}>🤖 ALFRED es un asistente de Inteligencia Artificial. La información proporcionada es orientativa y no sustituye asesoramiento profesional.</div>
         <div>ALFRED · La vida adulta por fin tiene manual · Proyecto ISDI AIEx 2026</div>
       </div>
 
