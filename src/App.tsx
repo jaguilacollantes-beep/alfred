@@ -61,7 +61,7 @@ function App() {
       </div>
 
       <div style={{ padding: "40px", maxWidth: 900, margin: "0 auto" }}>
-        {mensajes.length === 0 && (
+        {( && (
           <>
             <h2 style={{ textAlign: "center", marginBottom: 24, color: "#1a1a2e" }}>¿En qué puedo ayudarte?</h2>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 40 }}>
@@ -85,9 +85,7 @@ function App() {
                 ))}
               </div>
             </div>
-          </>
-        )}
-
+          )}
         <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", marginBottom: 16 }}>
           {mensajes.length === 0 && (
             <div style={{ textAlign: "center", color: "#aaa", padding: 20 }}>🤖 ¡Hola! Soy ALFRED. ¿En qué puedo ayudarte hoy?</div>
