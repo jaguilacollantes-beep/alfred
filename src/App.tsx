@@ -95,7 +95,7 @@ function App() {
             style={{ background: "#FF6B6B", color: "#fff", border: "none", borderRadius: 32, padding: "16px 32px", fontSize: 16, fontWeight: "700", cursor: "pointer", boxShadow: "0 8px 24px rgba(255,107,107,0.4)", width: "100%", maxWidth: 280 }}>
             Empieza gratis →
           </button>
-          <div style={{ marginTop: 20, color: "#aaa", fontSize: 13 }}>🎓 Proyecto ISDI AIEx 2025</div>
+          <div style={{ marginTop: 20, color: "#aaa", fontSize: 13 }}>🎓 Proyecto ISDI AIEx 2026</div>
         </div>
 
         {/* PREVIEW — oculto en móvil */}
@@ -186,7 +186,8 @@ function App() {
 
       {/* FOOTER */}
       <div style={{ textAlign: "center", padding: "24px", color: "#aaa", fontSize: 12, borderTop: "1px solid #f0f0f0" }}>
-        ALFRED · La vida adulta por fin tiene manual · Proyecto ISDI AIEx 2025
+        ALFRED · La vida adulta por fin tiene manual · Proyecto ISDI AIEx 2026
+        
       </div>
 
     </div>
