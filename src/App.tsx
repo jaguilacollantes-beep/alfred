@@ -16,6 +16,7 @@ function App() {
   const [pregunta, setPregunta] = useState("");
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [cargando, setCargando] = useState(false);
+  const [aceptado, setAceptado] = useState(false);
 
   async function preguntar() {
     if (!pregunta.trim()) return;
@@ -47,6 +48,34 @@ function App() {
     document.getElementById("chat")?.scrollIntoView({ behavior: "smooth" });
   }
 
+  if (!aceptado) {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff", padding: 20 }}>
+        <div style={{ maxWidth: 480, textAlign: "center", padding: 40, borderRadius: 24, boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
+          <div style={{ fontSize: 56, marginBottom: 16 }}>🤖</div>
+          <h2 style={{ fontSize: 26, fontWeight: "800", color: "#2D3436", marginBottom: 12 }}>Bienvenido a ALFRED</h2>
+          <p style={{ color: "#636e72", lineHeight: 1.6, marginBottom: 24, fontSize: 15 }}>
+            Soy un asistente basado en <strong>Inteligencia Artificial</strong>. La información que proporciono es <strong>orientativa</strong> y no sustituye asesoramiento profesional ni información oficial.
+          </p>
+          <div style={{ background: "#FFF5F5", borderRadius: 16, padding: 20, marginBottom: 24, textAlign: "left", fontSize: 14, color: "#636e72", lineHeight: 1.8 }}>
+            <div>✅ Te ayudo con trámites, finanzas, vivienda y viajes</div>
+            <div>⚠️ No soy abogado, asesor financiero ni funcionario</div>
+            <div>📋 Consulta siempre las fuentes oficiales para decisiones importantes</div>
+            <div>🔒 Tus conversaciones se guardan para mejorar el servicio</div>
+          </div>
+          <button
+            onClick={() => setAceptado(true)}
+            style={{ background: "#FF6B6B", color: "#fff", border: "none", borderRadius: 32, padding: "16px 40px", fontSize: 16, fontWeight: "700", cursor: "pointer", width: "100%", boxShadow: "0 8px 24px rgba(255,107,107,0.4)" }}>
+            Entendido, empezar →
+          </button>
+          <div style={{ marginTop: 16, fontSize: 11, color: "#aaa" }}>
+            Solo para mayores de 18 años · Proyecto ISDI AIEx 2026
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ fontFamily: "'Segoe UI', sans-serif", minHeight: "100vh", background: "#fff" }}>
 
@@ -60,8 +89,6 @@ function App() {
           .section-padding { padding: 40px 20px !important; }
           .chat-padding { padding: 40px 20px !important; }
           .header-padding { padding: 16px 20px !important; }
-          .preguntas-rapidas { gap: 6px !important; }
-          .preguntas-rapidas button { font-size: 12px !important; padding: 6px 12px !important; }
         }
       `}</style>
 
@@ -72,7 +99,7 @@ function App() {
           <div style={{ fontSize: 22, fontWeight: "800", color: "#2D3436" }}>ALFRED</div>
         </div>
         <div style={{ background: "#FF6B6B", color: "#fff", borderRadius: 24, padding: "8px 16px", fontSize: 12, fontWeight: "700" }}>
-          Beta gratuita ✨
+          🤖 Asistente de IA · Beta gratuita
         </div>
       </div>
 
@@ -98,18 +125,17 @@ function App() {
           <div style={{ marginTop: 20, color: "#aaa", fontSize: 13 }}>🎓 Proyecto ISDI AIEx 2026</div>
         </div>
 
-        {/* PREVIEW — oculto en móvil */}
         <div className="hero-preview" style={{ background: "#FFF5F5", borderRadius: 24, padding: 28, boxShadow: "0 20px 60px rgba(255,107,107,0.15)" }}>
           <div style={{ background: "#fff", borderRadius: 16, padding: 20, marginBottom: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-            <div style={{ fontWeight: "700", color: "#FF6B6B", fontSize: 13, marginBottom: 6 }}>🤖 ALFRED</div>
-            <div style={{ color: "#2D3436", fontSize: 14, lineHeight: 1.5 }}>¡Hola! Soy tu guía para la vida adulta. ¿En qué puedo ayudarte? 👋</div>
+            <div style={{ fontWeight: "700", color: "#FF6B6B", fontSize: 13, marginBottom: 6 }}>🤖 ALFRED · Asistente IA</div>
+            <div style={{ color: "#2D3436", fontSize: 14, lineHeight: 1.5 }}>¡Hola! Soy ALFRED, un asistente basado en IA. ¿En qué puedo ayudarte? 👋</div>
           </div>
           <div style={{ background: "#FF6B6B", borderRadius: 16, padding: 16, marginBottom: 12, marginLeft: 40 }}>
             <div style={{ color: "#fff", fontSize: 14 }}>¿Cómo me empadrono en Madrid?</div>
           </div>
           <div style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-            <div style={{ fontWeight: "700", color: "#FF6B6B", fontSize: 13, marginBottom: 6 }}>🤖 ALFRED</div>
-            <div style={{ color: "#2D3436", fontSize: 14, lineHeight: 1.5 }}>¡Claro! Necesitas DNI en vigor, contrato de alquiler y cita en tu ayuntamiento. Es gratis 🏛️</div>
+            <div style={{ fontWeight: "700", color: "#FF6B6B", fontSize: 13, marginBottom: 6 }}>🤖 ALFRED · Asistente IA</div>
+            <div style={{ color: "#2D3436", fontSize: 14, lineHeight: 1.5 }}>¡Claro! Necesitas DNI en vigor y contrato de alquiler. Es gratis 🏛️ ⚠️ Consulta siempre tu ayuntamiento para información oficial.</div>
           </div>
         </div>
       </div>
@@ -138,7 +164,7 @@ function App() {
         <h2 style={{ textAlign: "center", fontSize: 28, fontWeight: "800", marginBottom: 8, color: "#2D3436" }}>Pregúntame lo que quieras</h2>
         <p style={{ textAlign: "center", color: "#888", marginBottom: 28, fontSize: 15 }}>Respondo en segundos, con fuentes oficiales</p>
 
-        <div className="preguntas-rapidas" style={{ marginBottom: 20, display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
+        <div style={{ marginBottom: 20, display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
           {["¿Cómo me empadrono?", "¿Cuánto debo ahorrar?", "¿Qué revisar en un alquiler?", "¿Pasaporte para Francia?"].map((q) => (
             <button key={q} onClick={() => preguntaRapida(q)}
               style={{ background: "#fff", border: "2px solid #FF6B6B", borderRadius: 24, padding: "8px 16px", fontSize: 13, cursor: "pointer", color: "#FF6B6B", fontWeight: "600" }}>
@@ -157,7 +183,7 @@ function App() {
           {mensajes.map((m, i) => (
             <div key={i} style={{ marginBottom: 16, display: "flex", justifyContent: m.rol === "usuario" ? "flex-end" : "flex-start" }}>
               <div style={{ maxWidth: "80%", padding: "14px 18px", borderRadius: m.rol === "usuario" ? "20px 20px 4px 20px" : "20px 20px 20px 4px", background: m.rol === "usuario" ? "#FF6B6B" : "#F8F9FA", color: m.rol === "usuario" ? "#fff" : "#2D3436", lineHeight: 1.6, whiteSpace: "pre-wrap", fontSize: 15 }}>
-                {m.rol === "alfred" && <div style={{ fontWeight: "700", marginBottom: 6, color: "#FF6B6B", fontSize: 12 }}>🤖 ALFRED</div>}
+                {m.rol === "alfred" && <div style={{ fontWeight: "700", marginBottom: 6, color: "#FF6B6B", fontSize: 12 }}>🤖 ALFRED · Asistente IA</div>}
                 {m.texto}
               </div>
             </div>
@@ -182,12 +208,19 @@ function App() {
             {cargando ? "⏳" : "→"}
           </button>
         </div>
+
+        {/* AVISO LEGAL */}
+        <div style={{ marginTop: 16, padding: 16, background: "#FFF5F5", borderRadius: 12, fontSize: 12, color: "#aaa", textAlign: "center", lineHeight: 1.6 }}>
+          ⚠️ La información proporcionada por ALFRED es orientativa y no sustituye asesoramiento profesional ni información oficial. Consulta siempre las fuentes oficiales para decisiones importantes.
+        </div>
       </div>
 
       {/* FOOTER */}
       <div style={{ textAlign: "center", padding: "24px", color: "#aaa", fontSize: 12, borderTop: "1px solid #f0f0f0" }}>
-        ALFRED · La vida adulta por fin tiene manual · Proyecto ISDI AIEx 2026
-        
+        <div style={{ marginBottom: 6 }}>
+          🤖 ALFRED es un asistente de Inteligencia Artificial. La información proporcionada es orientativa y no sustituye asesoramiento profesional.
+        </div>
+        <div>ALFRED · La vida adulta por fin tiene manual · Proyecto ISDI AIEx 2026</div>
       </div>
 
     </div>
