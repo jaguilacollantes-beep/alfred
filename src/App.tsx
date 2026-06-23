@@ -9,9 +9,20 @@ const temas = [
 
 const itinerarios = [
   {
+    icono: "🎂",
+    titulo: "Acabo de cumplir 18 años",
+    color: "#FF6B6B",
+    pasos: [
+      { fase: "Documentación obligatoria", items: ["Renueva el DNI de adulto — cita en interior.gob.es", "Saca el pasaporte si no tienes — 30€ y 10 años de vigencia", "Considera sacarte el carné de conducir (B)", "Crea tu cuenta en importass.gob.es"] },
+      { fase: "Finanzas personales", items: ["Abre una cuenta bancaria de adulto sin comisiones", "Aprende la regla 50/30/20: necesidades/ocio/ahorro", "Descarga una app de control de gastos", "Si trabajas: guarda tus nóminas y entiende tu nómina"] },
+      { fase: "Salud y derechos", items: ["Solicita tu tarjeta sanitaria propia en tu centro de salud", "Pide el Bono Cultural Joven — 400€ en boncultura.gob.es", "Conoce tus nuevos derechos: votar, firmar contratos, independencia legal", "Eres penalmente responsable como adulto"] },
+      { fase: "Educación y futuro", items: ["Solicita beca MEC si vas a la universidad", "Investiga el Carné Joven Europeo para descuentos", "Considera FP si no vas a la universidad", "Aprende habilidades básicas del hogar: cocinar, limpiar, gestionar suministros"] },
+    ],
+  },
+  {
     icono: "🎓",
     titulo: "Llego a la Universidad",
-    color: "#FF6B6B",
+    color: "#4ECDC4",
     pasos: [
       { fase: "Antes de empezar", items: ["Matriculación oficial y pago de tasas", "Solicitar beca MEC en becas.educacion.gob.es", "Abrir cuenta bancaria sin comisiones", "Tramitar tarjeta de transporte joven", "Conseguir el carné de estudiante"] },
       { fase: "Primeras semanas", items: ["Empadronarte si te mudas de ciudad", "Solicitar tarjeta sanitaria", "Activar correo universitario y plataformas", "Conocer servicios de la universidad", "Solicitar el Bono Cultural si eres menor de 23"] },
@@ -21,7 +32,7 @@ const itinerarios = [
   {
     icono: "🏙️",
     titulo: "Me mudo a una nueva ciudad",
-    color: "#4ECDC4",
+    color: "#A29BFE",
     pasos: [
       { fase: "Antes de mudarte", items: ["Buscar piso en Idealista o Fotocasa", "Revisar el contrato de alquiler", "Comprobar estado del piso con fotos", "Calcular gastos: alquiler + suministros + comunidad"] },
       { fase: "Primera semana", items: ["Empadronarte en el ayuntamiento", "Cambiar domicilio en banco y Hacienda", "Buscar centro de salud y médico de cabecera", "Dar de alta suministros si no están incluidos"] },
@@ -31,7 +42,7 @@ const itinerarios = [
   {
     icono: "🎨",
     titulo: "Quiero el Bono Cultural",
-    color: "#A29BFE",
+    color: "#55EFC4",
     pasos: [
       { fase: "Requisitos", items: ["Tener entre 18 y 23 años", "Ser ciudadano español o residente legal", "No haber disfrutado del bono anteriormente"] },
       { fase: "Cómo solicitarlo", items: ["Accede a boncultura.gob.es", "Regístrate con tu DNI y datos bancarios", "Verifica tu identidad con Cl@ve", "Recibes 400€ en tu cuenta virtual en 24-48h"] },
@@ -51,7 +62,7 @@ const itinerarios = [
   {
     icono: "✈️",
     titulo: "Voy a viajar al extranjero",
-    color: "#55EFC4",
+    color: "#FDCB6E",
     pasos: [
       { fase: "Dentro de la UE", items: ["Solo necesitas el DNI en vigor", "Tarjeta Sanitaria Europea — gratis en seg-social.es", "Avisa a tu banco para evitar bloqueos", "Descarga apps de transporte del destino"] },
       { fase: "Fuera de la UE", items: ["Pasaporte con mínimo 6 meses de validez", "Visado si es necesario — exteriores.gob.es", "Seguro de viaje recomendado", "Regístrate en el MAEC si hay riesgo"] },
@@ -190,11 +201,11 @@ function App() {
             <div style={{ color: "#2D3436", fontSize: 14, lineHeight: 1.5 }}>¡Hola! Soy ALFRED, un asistente basado en IA. ¿En qué puedo ayudarte? 👋</div>
           </div>
           <div style={{ background: "#FF6B6B", borderRadius: 16, padding: 16, marginBottom: 12, marginLeft: 40 }}>
-            <div style={{ color: "#fff", fontSize: 14 }}>¿Cómo me empadrono en Madrid?</div>
+            <div style={{ color: "#fff", fontSize: 14 }}>Acabo de cumplir 18, ¿qué debo hacer?</div>
           </div>
           <div style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
             <div style={{ fontWeight: "700", color: "#FF6B6B", fontSize: 13, marginBottom: 6 }}>🤖 ALFRED · Asistente IA</div>
-            <div style={{ color: "#2D3436", fontSize: 14, lineHeight: 1.5 }}>¡Claro! Necesitas DNI en vigor y contrato de alquiler. Es gratis 🏛️ ⚠️ Consulta tu ayuntamiento para info oficial.</div>
+            <div style={{ color: "#2D3436", fontSize: 14, lineHeight: 1.5 }}>¡Felicidades! Lo primero: renueva tu DNI, solicita el Bono Cultural y abre una cuenta bancaria de adulto 🎂</div>
           </div>
         </div>
       </div>
@@ -231,7 +242,7 @@ function App() {
                 <div style={{ fontWeight: "700", color: "#2D3436", fontSize: 15, marginBottom: 6 }}>{it.titulo}</div>
                 <div style={{ fontSize: 12, color: "#888" }}>{it.pasos.length} fases · {it.pasos.reduce((a, f) => a + f.items.length, 0)} pasos</div>
                 {itinerarioActivo === i && (
-                  <div style={{ marginTop: 8, background: it.color, color: "#fff", borderRadius: 12, padding: "4px 10px", fontSize: 11, fontWeight: "700", display: "inline-block" }}>
+                  <div style={{ marginTop: 8, background: it.color, color: it.color === "#FFE66D" ? "#2D3436" : "#fff", borderRadius: 12, padding: "4px 10px", fontSize: 11, fontWeight: "700", display: "inline-block" }}>
                     ✓ Abierto
                   </div>
                 )}
@@ -239,10 +250,10 @@ function App() {
             ))}
           </div>
 
-          {/* PANEL ITINERARIO */}
+          {/* PANEL ITINERARIO ACTIVO */}
           {itinerarioActivo !== null && (
             <div id="itinerario-panel" style={{ background: "#FAFAFA", borderRadius: 24, padding: 32, border: `2px solid ${itinerarios[itinerarioActivo].color}33`, marginBottom: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <div style={{ fontSize: 40 }}>{itinerarios[itinerarioActivo].icono}</div>
                   <div>
@@ -250,13 +261,13 @@ function App() {
                     <div style={{ fontSize: 13, color: "#888" }}>Guía paso a paso</div>
                   </div>
                 </div>
-                <button onClick={() => preguntaRapida(`Tengo dudas sobre el itinerario: ${itinerarios[itinerarioActivo].titulo}. ¿Puedes ayudarme?`)}
+                <button onClick={() => preguntaRapida(`Tengo dudas sobre: ${itinerarios[itinerarioActivo].titulo}. ¿Puedes ayudarme con más detalle?`)}
                   style={{ background: itinerarios[itinerarioActivo].color, color: itinerarios[itinerarioActivo].color === "#FFE66D" ? "#2D3436" : "#fff", border: "none", borderRadius: 20, padding: "10px 20px", fontSize: 13, fontWeight: "700", cursor: "pointer" }}>
                   💬 Preguntarle a ALFRED →
                 </button>
               </div>
 
-              <div className="fases-grid" style={{ display: "grid", gridTemplateColumns: `repeat(${itinerarios[itinerarioActivo].pasos.length}, 1fr)`, gap: 16 }}>
+              <div className="fases-grid" style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(itinerarios[itinerarioActivo].pasos.length, 4)}, 1fr)`, gap: 16 }}>
                 {itinerarios[itinerarioActivo].pasos.map((fase, fi) => (
                   <div key={fi} style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
                     <div style={{ fontWeight: "700", color: itinerarios[itinerarioActivo].color === "#FFE66D" ? "#b8860b" : itinerarios[itinerarioActivo].color, fontSize: 12, marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.5 }}>
@@ -282,7 +293,7 @@ function App() {
         <p style={{ textAlign: "center", color: "#888", marginBottom: 28, fontSize: 15 }}>Respondo en segundos, con fuentes oficiales</p>
 
         <div style={{ marginBottom: 20, display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
-          {["¿Cómo me empadrono?", "¿Cuánto debo ahorrar?", "¿Qué revisar en un alquiler?", "¿Pasaporte para Francia?"].map((q) => (
+          {["¿Qué hago al cumplir 18?", "¿Cómo me empadrono?", "¿Cuánto debo ahorrar?", "¿Qué revisar en un alquiler?"].map((q) => (
             <button key={q} onClick={() => preguntaRapida(q)}
               style={{ background: "#fff", border: "2px solid #FF6B6B", borderRadius: 24, padding: "8px 16px", fontSize: 13, cursor: "pointer", color: "#FF6B6B", fontWeight: "600" }}>
               {q}
