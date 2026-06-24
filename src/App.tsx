@@ -71,6 +71,37 @@ const itinerarios = [
   },
 ];
 
+const COMUNIDADES = [
+  "Andalucía", "Aragón", "Asturias", "Baleares", "Canarias", "Cantabria",
+  "Castilla-La Mancha", "Castilla y León", "Cataluña", "Extremadura", "Galicia",
+  "La Rioja", "Madrid", "Murcia", "Navarra", "País Vasco", "Valencia",
+  "Ceuta", "Melilla"
+];
+
+// Pasos del onboarding
+const ONBOARDING_STEPS = [
+  {
+    pregunta: "¿Cuántos años tienes?",
+    placeholder: "Escribe tu edad, por ejemplo: 22",
+    campo: "edad",
+    emoji: "🎂",
+  },
+  {
+    pregunta: "¿En qué comunidad autónoma vives?",
+    placeholder: "Por ejemplo: Madrid, Cataluña, Andalucía...",
+    campo: "comunidad",
+    emoji: "📍",
+    opciones: COMUNIDADES,
+  },
+  {
+    pregunta: "¿Estudias, trabajas o las dos cosas?",
+    placeholder: "",
+    campo: "situacion",
+    emoji: "🎓",
+    opciones: ["Solo estudio", "Solo trabajo", "Estudio y trabajo", "Ni estudio ni trabajo"],
+  },
+];
+
 type Mensaje = {
   rol: "usuario" | "alfred";
   texto: string;
@@ -80,6 +111,12 @@ type Recordatorio = {
   titulo: string;
   fecha: string;
   descripcion: string;
+};
+
+type PerfilUsuario = {
+  edad: string;
+  comunidad: string;
+  situacion: string;
 };
 
 function generarICS(recordatorio: Recordatorio): void {
@@ -118,9 +155,27 @@ function App() {
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [cargando, setCargando] = useState(false);
   const [aceptado, setAceptado] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState(0); // 0-2 = preguntas, 3 = completado
+  const [onboardingInput, setOnboardingInput] = useState("");
+  const [perfil, setPerfil] = useState<PerfilUsuario>({ edad: "", comunidad: "", situacion: "" });
   const [itinerarioActivo, setItinerarioActivo] = useState<number | null>(null);
   const [recordatorioActivo, setRecordatorioActivo] = useState<number | null>(null);
   const [formRecordatorio, setFormRecordatorio] = useState<Recordatorio>({ titulo: "", fecha: "", descripcion: "" });
+
+  function responderOnboarding(valor: string) {
+    if (!valor.trim()) return;
+    const campo = ONBOARDING_STEPS[onboardingStep].campo as keyof PerfilUsuario;
+    const nuevoPerfil = { ...perfil, [campo]: valor };
+    setPerfil(nuevoPerfil);
+    setOnboardingInput("");
+
+    if (onboardingStep < ONBOARDING_STEPS.length - 1) {
+      setOnboardingStep(onboardingStep + 1);
+    } else {
+      // Onboarding completado
+      setOnboardingStep(3);
+    }
+  }
 
   async function preguntar() {
     if (!pregunta.trim()) return;
@@ -136,31 +191,25 @@ function App() {
       .map((m) => `${m.rol === "usuario" ? "Usuario" : "ALFRED"}: ${m.texto}`)
       .join("\n");
 
+    // Incluir perfil del usuario en el contexto
+    const contextoUsuario = `[Perfil del usuario: ${perfil.edad} años, vive en ${perfil.comunidad}, situación: ${perfil.situacion}]`;
+
     const response = await fetch("https://alfrediaactivo1.app.n8n.cloud/webhook/Chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: historial }),
+      body: JSON.stringify({
+        question: historialActualizado.slice(-5).map((m) => ({ rol: m.rol, texto: m.texto })),
+        contextoUsuario,
+        perfil,
+      }),
     });
 
     const data = await response.json();
-    const respuestaRaw = data.text || data.answer || JSON.stringify(data);
-
-    const tieneRecordatorio = respuestaRaw.includes("[RECORDATORIO:");
-    const tituloSugerido = tieneRecordatorio
-      ? respuestaRaw.match(/\[RECORDATORIO: (.+?)\]/)?.[1] || ""
-      : "";
-    const respuestaLimpia = respuestaRaw.replace(/\[RECORDATORIO:.*?\]/g, "").trim();
-
+    const respuesta = data.text || data.answer || JSON.stringify(data);
     const nuevoIndex = historialActualizado.length;
-    setMensajes([...historialActualizado, { rol: "alfred", texto: respuestaLimpia }]);
-
-    if (tieneRecordatorio) {
-      setRecordatorioActivo(nuevoIndex);
-      setFormRecordatorio({ titulo: tituloSugerido, fecha: "", descripcion: pregunta });
-    } else {
-      setRecordatorioActivo(null);
-    }
-
+    setMensajes([...historialActualizado, { rol: "alfred", texto: respuesta }]);
+    setRecordatorioActivo(nuevoIndex);
+    setFormRecordatorio({ titulo: "", fecha: "", descripcion: pregunta });
     setCargando(false);
   }
 
@@ -178,6 +227,7 @@ function App() {
     }
   }
 
+  // PANTALLA 1: Términos y condiciones
   if (!aceptado) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff", padding: 20 }}>
@@ -187,12 +237,18 @@ function App() {
           <p style={{ color: "#636e72", lineHeight: 1.6, marginBottom: 24, fontSize: 15 }}>
             Soy un asistente basado en <strong>Inteligencia Artificial</strong>. La información que proporciono es <strong>orientativa</strong> y no sustituye asesoramiento profesional ni información oficial.
           </p>
-          <div style={{ background: "#FFF5F5", borderRadius: 16, padding: 20, marginBottom: 24, textAlign: "left", fontSize: 14, color: "#636e72", lineHeight: 1.8 }}>
+          <div style={{ background: "#FFF5F5", borderRadius: 16, padding: 20, marginBottom: 16, textAlign: "left", fontSize: 14, color: "#636e72", lineHeight: 1.8 }}>
             <div>✅ Te ayudo con trámites, finanzas, vivienda y viajes</div>
             <div>⚠️ No soy abogado, asesor financiero ni funcionario</div>
             <div>📋 Consulta siempre las fuentes oficiales para decisiones importantes</div>
             <div>🔒 Tus conversaciones se guardan para mejorar el servicio</div>
           </div>
+          <div style={{ background: "#F0FFF4", border: "1px solid #00b89433", borderRadius: 16, padding: 20, marginBottom: 24, textAlign: "left", fontSize: 14, color: "#636e72", lineHeight: 1.8 }}>
+            <div style={{ fontWeight: "700", color: "#2D3436", marginBottom: 8 }}>🎯 Para personalizar mejor tus respuestas</div>
+            <div>Te haremos <strong>3 preguntas rápidas</strong> sobre tu edad, comunidad autónoma y situación actual.</div>
+            <div style={{ marginTop: 8, color: "#888" }}>Esto nos permite darte información relevante para tu caso concreto — no es lo mismo renovar el DNI en Madrid que en Canarias, ni siendo estudiante que trabajador.</div>
+          </div>
+
           <button onClick={() => setAceptado(true)}
             style={{ background: "#FF6B6B", color: "#fff", border: "none", borderRadius: 32, padding: "16px 40px", fontSize: 16, fontWeight: "700", cursor: "pointer", width: "100%", boxShadow: "0 8px 24px rgba(255,107,107,0.4)" }}>
             Entendido, empezar →
@@ -203,6 +259,82 @@ function App() {
     );
   }
 
+  // PANTALLA 2: Onboarding (3 preguntas)
+  if (onboardingStep < 3) {
+    const step = ONBOARDING_STEPS[onboardingStep];
+    const progreso = ((onboardingStep) / ONBOARDING_STEPS.length) * 100;
+
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff", padding: 20 }}>
+        <div style={{ maxWidth: 480, width: "100%", padding: 40, borderRadius: 24, boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
+
+          {/* Progress bar */}
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#aaa", marginBottom: 8 }}>
+              <span>Paso {onboardingStep + 1} de {ONBOARDING_STEPS.length}</span>
+              <span>{Math.round(progreso + 33)}% completado</span>
+            </div>
+            <div style={{ background: "#f0f0f0", borderRadius: 8, height: 6 }}>
+              <div style={{ background: "#FF6B6B", borderRadius: 8, height: 6, width: `${progreso + 33}%`, transition: "width 0.3s" }} />
+            </div>
+          </div>
+
+          {/* Pregunta */}
+          <div style={{ textAlign: "center", marginBottom: 32 }}>
+            <div style={{ fontSize: 52, marginBottom: 16 }}>{step.emoji}</div>
+            <h2 style={{ fontSize: 22, fontWeight: "800", color: "#2D3436", marginBottom: 8 }}>
+              {step.pregunta}
+            </h2>
+            <p style={{ color: "#888", fontSize: 14 }}>
+              Para personalizar tus respuestas
+            </p>
+          </div>
+
+          {/* Opciones o input libre */}
+          {step.opciones ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {step.opciones.map((op) => (
+                <button key={op} onClick={() => responderOnboarding(op)}
+                  style={{ background: "#fff", border: "2px solid #eee", borderRadius: 14, padding: "12px 20px", fontSize: 14, fontWeight: "600", cursor: "pointer", color: "#2D3436", textAlign: "left", transition: "all 0.15s" }}
+                  onMouseOver={e => (e.currentTarget.style.border = "2px solid #FF6B6B")}
+                  onMouseOut={e => (e.currentTarget.style.border = "2px solid #eee")}>
+                  {op}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div>
+              <input
+                autoFocus
+                value={onboardingInput}
+                onChange={e => setOnboardingInput(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && responderOnboarding(onboardingInput)}
+                placeholder={step.placeholder}
+                style={{ width: "100%", padding: "14px 18px", borderRadius: 14, border: "2px solid #eee", fontSize: 15, outline: "none", boxSizing: "border-box", marginBottom: 12 }}
+                onFocus={e => e.target.style.border = "2px solid #FF6B6B"}
+                onBlur={e => e.target.style.border = "2px solid #eee"}
+              />
+              <button onClick={() => responderOnboarding(onboardingInput)}
+                disabled={!onboardingInput.trim()}
+                style={{ background: onboardingInput.trim() ? "#FF6B6B" : "#eee", color: onboardingInput.trim() ? "#fff" : "#aaa", border: "none", borderRadius: 14, padding: "14px", fontSize: 15, fontWeight: "700", cursor: onboardingInput.trim() ? "pointer" : "default", width: "100%", boxShadow: onboardingInput.trim() ? "0 4px 16px rgba(255,107,107,0.4)" : "none" }}>
+                Continuar →
+              </button>
+            </div>
+          )}
+
+          {/* Saltar onboarding */}
+          <div style={{ textAlign: "center", marginTop: 20 }}>
+            <button onClick={() => setOnboardingStep(3)}
+              style={{ background: "none", border: "none", color: "#aaa", fontSize: 13, cursor: "pointer", textDecoration: "underline" }}>
+              Saltar por ahora
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // PANTALLA 3: App principal (igual que antes + badge de perfil)
   return (
     <div style={{ fontFamily: "'Segoe UI', sans-serif", minHeight: "100vh", background: "#fff" }}>
       <style>{`
@@ -226,8 +358,18 @@ function App() {
           <div style={{ fontSize: 28 }}>🤖</div>
           <div style={{ fontSize: 22, fontWeight: "800", color: "#2D3436" }}>ALFRED</div>
         </div>
-        <div style={{ background: "#FF6B6B", color: "#fff", borderRadius: 24, padding: "8px 16px", fontSize: 12, fontWeight: "700" }}>
-          🤖 Asistente de IA · Beta gratuita
+        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          {/* Badge de perfil */}
+          {perfil.edad && (
+            <div style={{ background: "#FFF5F5", border: "1px solid #FF6B6B33", borderRadius: 24, padding: "6px 14px", fontSize: 12, color: "#FF6B6B", fontWeight: "600", display: "flex", gap: 8 }}>
+              <span>🎂 {perfil.edad} años</span>
+              {perfil.comunidad && <span>· 📍 {perfil.comunidad}</span>}
+              {perfil.situacion && <span>· {perfil.situacion === "Solo estudio" ? "🎓" : perfil.situacion === "Solo trabajo" ? "💼" : "🎓💼"}</span>}
+            </div>
+          )}
+          <div style={{ background: "#FF6B6B", color: "#fff", borderRadius: 24, padding: "8px 16px", fontSize: 12, fontWeight: "700" }}>
+            🤖 Asistente de IA · Beta gratuita
+          </div>
         </div>
       </div>
 
@@ -261,7 +403,7 @@ function App() {
           </div>
           <div style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
             <div style={{ fontWeight: "700", color: "#FF6B6B", fontSize: 13, marginBottom: 6 }}>🤖 ALFRED · Asistente IA</div>
-            <div style={{ color: "#2D3436", fontSize: 14, lineHeight: 1.5 }}>¡Felicidades! Lo primero: renueva tu DNI, solicita el Bono Cultural y abre una cuenta bancaria 🎂</div>
+            <div style={{ color: "#2D3436", fontSize: 14, lineHeight: 1.5 }}>¡Felicidades! Lo primero: renueva tu DNI, solicita el Bono Cultural y abre una cuenta bancaria de adulto 🎂</div>
           </div>
         </div>
       </div>
@@ -344,6 +486,13 @@ function App() {
         <h2 style={{ textAlign: "center", fontSize: 28, fontWeight: "800", marginBottom: 8, color: "#2D3436" }}>Pregúntame lo que quieras</h2>
         <p style={{ textAlign: "center", color: "#888", marginBottom: 28, fontSize: 15 }}>Respondo en segundos, con fuentes oficiales</p>
 
+        {/* Badge de contexto personalizado */}
+        {perfil.edad && (
+          <div style={{ background: "#FFF5F5", borderRadius: 12, padding: "10px 16px", marginBottom: 16, fontSize: 13, color: "#636e72", textAlign: "center" }}>
+            🎯 Respuestas personalizadas para <strong>{perfil.edad} años</strong> en <strong>{perfil.comunidad}</strong> · {perfil.situacion}
+          </div>
+        )}
+
         <div style={{ marginBottom: 20, display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
           {["¿Qué hago al cumplir 18?", "¿Cómo me empadrono?", "¿Cuánto debo ahorrar?", "¿Qué revisar en un alquiler?"].map((q) => (
             <button key={q} onClick={() => preguntaRapida(q)}
@@ -357,7 +506,9 @@ function App() {
           {mensajes.length === 0 && (
             <div style={{ textAlign: "center", color: "#aaa", padding: 32 }}>
               <div style={{ fontSize: 44, marginBottom: 12 }}>💬</div>
-              <div style={{ fontSize: 15, color: "#636e72" }}>Escribe tu pregunta o elige un tema arriba</div>
+              <div style={{ fontSize: 15, color: "#636e72" }}>
+                {perfil.edad ? `¡Hola! Estoy listo para ayudarte. ¿Qué necesitas saber?` : "Escribe tu pregunta o elige un tema arriba"}
+              </div>
             </div>
           )}
           {mensajes.map((m, i) => (
@@ -369,11 +520,10 @@ function App() {
                 </div>
               </div>
 
-              {/* RECORDATORIO INTELIGENTE — solo cuando ALFRED lo detecta */}
               {m.rol === "alfred" && recordatorioActivo === i && (
                 <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 16, marginLeft: 4 }}>
                   <div style={{ background: "#fff", border: "2px solid #FF6B6B", borderRadius: 16, padding: 16, maxWidth: "80%" }}>
-                    <div style={{ fontSize: 13, fontWeight: "700", color: "#FF6B6B", marginBottom: 10 }}>📅 ALFRED detectó una acción importante — ¿quieres añadir un recordatorio?</div>
+                    <div style={{ fontSize: 13, fontWeight: "700", color: "#FF6B6B", marginBottom: 10 }}>📅 ¿Quieres añadir un recordatorio?</div>
                     <input
                       placeholder="Título del recordatorio"
                       value={formRecordatorio.titulo}
