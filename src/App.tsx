@@ -186,11 +186,6 @@ function App() {
     setCargando(true);
     setRecordatorioActivo(null);
 
-    const historial = historialActualizado
-      .slice(-5)
-      .map((m) => `${m.rol === "usuario" ? "Usuario" : "ALFRED"}: ${m.texto}`)
-      .join("\n");
-
     // Incluir perfil del usuario en el contexto
     const contextoUsuario = `[Perfil del usuario: ${perfil.edad} años, vive en ${perfil.comunidad}, situación: ${perfil.situacion}]`;
 
