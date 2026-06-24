@@ -120,8 +120,8 @@ function RespuestaFormateada({ texto }: { texto: string }) {
   const lineas = texto.split("\n").filter(l => l.trim() !== "");
 
   const elementos: React.ReactNode[] = [];
-  let listaActual: React.ReactNode[] = [];
-  let listaOrdenada: React.ReactNode[] = [];
+  let listaActual: string[] = [];
+  let listaOrdenada: string[] = [];
 
   function flushLista() {
     if (listaActual.length > 0) {
@@ -187,26 +187,25 @@ function RespuestaFormateada({ texto }: { texto: string }) {
 
     // Bullet con - o •
     if (/^[-•]\s/.test(trimmed)) {
-      const contenido = limpiarInline(trimmed.replace(/^[-•]\s/, ""));
+      const contenido = trimmed.replace(/^[-•]\s/, "");
       listaActual.push(contenido);
       return;
     }
 
-    // Lista numerada — detecta "1. **titulo**: texto" o "1. texto"
+    // Lista numerada
     if (/^\d+[.)]\s/.test(trimmed)) {
       const sinNumero = trimmed.replace(/^\d+[.)]\s/, "");
-      const contenido = limpiarInline(sinNumero);
-      listaOrdenada.push(contenido);
+      listaOrdenada.push(sinNumero);
       return;
     }
 
     // Párrafo normal
     flushLista();
-    const textoLimpio = limpiarInline(trimmed);
+    const textoLimpio = trimmed;
     if (textoLimpio) {
       elementos.push(
         <p key={idx} style={{ margin: "6px 0", fontSize: 14, color: "#2D3436", lineHeight: 1.65 }}>
-          {textoLimpio}
+          {limpiarInline(textoLimpio)}
         </p>
       );
     }
