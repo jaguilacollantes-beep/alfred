@@ -120,8 +120,8 @@ function RespuestaFormateada({ texto }: { texto: string }) {
   const lineas = texto.split("\n").filter(l => l.trim() !== "");
 
   const elementos: React.ReactNode[] = [];
-  let listaActual: string[] = [];
-  let listaOrdenada: string[] = [];
+  let listaActual: React.ReactNode[] = [];
+  let listaOrdenada: React.ReactNode[] = [];
 
   function flushLista() {
     if (listaActual.length > 0) {
