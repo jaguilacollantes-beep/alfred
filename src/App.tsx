@@ -99,56 +99,54 @@ function generarICS(recordatorio: Recordatorio): void {
   URL.revokeObjectURL(url);
 }
 
-// ─── Convierte **texto** en <strong> y URLs en links ────────────────────────
+// ─── Convierte **texto**, URLs y [texto](url) en elementos React ─────────────
 function limpiarInline(texto: string): React.ReactNode {
-  // Primero detecta URLs
-  const urlRegex = /(https?:\/\/[^\s)]+)/g;
-  const boldRegex = /(\*\*[^*]+\*\*)/g;
+  // Regex para detectar links markdown [texto](url), URLs sueltas y **bold**
+  const partes = texto.split(/(\[([^\]]+)\]\((https?:\/\/[^)]+)\)|\*\*[^*]+\*\*|https?:\/\/[^\s)]+)/g);
 
-  // Split por URLs primero
-  const partesUrl = texto.split(urlRegex);
-  if (partesUrl.length === 1) {
-    // Sin URLs, procesa bold
-    const partesBold = texto.split(boldRegex);
-    if (partesBold.length === 1) return texto;
-    return (
-      <>
-        {partesBold.map((parte, i) => {
-          if (/^\*\*[^*]+\*\*$/.test(parte)) {
-            return <strong key={i} style={{ color: "#2D3436" }}>{parte.replace(/\*\*/g, "")}</strong>;
-          }
-          return parte;
-        })}
-      </>
-    );
+  if (partes.length === 1) return texto;
+
+  const resultado: React.ReactNode[] = [];
+  let i = 0;
+  const fullRegex = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)|\*\*([^*]+)\*\*|(https?:\/\/[^\s),]+)/g;
+  let lastIndex = 0;
+  let match;
+
+  fullRegex.lastIndex = 0;
+  while ((match = fullRegex.exec(texto)) !== null) {
+    // Texto antes del match
+    if (match.index > lastIndex) {
+      resultado.push(texto.slice(lastIndex, match.index));
+    }
+
+    if (match[1] && match[2]) {
+      // Formato markdown [texto](url)
+      resultado.push(
+        <a key={i++} href={match[2]} target="_blank" rel="noopener noreferrer" className="alfred-link">
+          🔗 {match[1].replace(/🔗\s?/, "")}
+        </a>
+      );
+    } else if (match[3]) {
+      // **bold**
+      resultado.push(<strong key={i++} style={{ color: "#2D3436" }}>{match[3]}</strong>);
+    } else if (match[4]) {
+      // URL suelta
+      const dominio = match[4].replace(/https?:\/\//, "").replace(/\/.*/,"");
+      resultado.push(
+        <a key={i++} href={match[4]} target="_blank" rel="noopener noreferrer" className="alfred-link">
+          🔗 {dominio}
+        </a>
+      );
+    }
+    lastIndex = match.index + match[0].length;
   }
 
-  return (
-    <>
-      {partesUrl.map((parte, i) => {
-        if (urlRegex.test(parte)) {
-          const dominio = parte.replace(/https?:\/\//, "").replace(/\/.*/,"");
-          return (
-            <a key={i} href={parte} target="_blank" rel="noopener noreferrer" className="alfred-link">
-              🔗 {dominio}
-            </a>
-          );
-        }
-        // Procesa bold en texto normal
-        const partesBold = parte.split(boldRegex);
-        return (
-          <span key={i}>
-            {partesBold.map((pb, j) => {
-              if (/^\*\*[^*]+\*\*$/.test(pb)) {
-                return <strong key={j} style={{ color: "#2D3436" }}>{pb.replace(/\*\*/g, "")}</strong>;
-              }
-              return pb;
-            })}
-          </span>
-        );
-      })}
-    </>
-  );
+  // Texto restante
+  if (lastIndex < texto.length) {
+    resultado.push(texto.slice(lastIndex));
+  }
+
+  return resultado.length === 1 ? resultado[0] : <>{resultado}</>;
 }
 
 // ─── Formateador de respuestas de ALFRED ────────────────────────────────────
