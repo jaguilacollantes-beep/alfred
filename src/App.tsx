@@ -99,6 +99,22 @@ function generarICS(recordatorio: Recordatorio): void {
   URL.revokeObjectURL(url);
 }
 
+// ─── Convierte **texto** en <strong> inline ──────────────────────────────────
+function limpiarInline(texto: string): React.ReactNode {
+  const partes = texto.split(/(\*\*[^*]+\*\*)/g);
+  if (partes.length === 1) return texto;
+  return (
+    <>
+      {partes.map((parte, i) => {
+        if (/^\*\*[^*]+\*\*$/.test(parte)) {
+          return <strong key={i} style={{ color: "#2D3436" }}>{parte.replace(/\*\*/g, "")}</strong>;
+        }
+        return parte;
+      })}
+    </>
+  );
+}
+
 // ─── Formateador de respuestas de ALFRED ────────────────────────────────────
 function RespuestaFormateada({ texto }: { texto: string }) {
   const lineas = texto.split("\n").filter(l => l.trim() !== "");
@@ -109,20 +125,22 @@ function RespuestaFormateada({ texto }: { texto: string }) {
 
   function flushLista() {
     if (listaActual.length > 0) {
+      const items = [...listaActual];
       elementos.push(
         <ul key={`ul-${elementos.length}`} style={{ margin: "8px 0", paddingLeft: 20 }}>
-          {listaActual.map((item, i) => (
-            <li key={i} style={{ marginBottom: 6, fontSize: 14, color: "#2D3436", lineHeight: 1.55 }}>{item}</li>
+          {items.map((item, i) => (
+            <li key={i} style={{ marginBottom: 6, fontSize: 14, color: "#2D3436", lineHeight: 1.55 }}>{limpiarInline(item)}</li>
           ))}
         </ul>
       );
       listaActual = [];
     }
     if (listaOrdenada.length > 0) {
+      const items = [...listaOrdenada];
       elementos.push(
         <ol key={`ol-${elementos.length}`} style={{ margin: "8px 0", paddingLeft: 22 }}>
-          {listaOrdenada.map((item, i) => (
-            <li key={i} style={{ marginBottom: 6, fontSize: 14, color: "#2D3436", lineHeight: 1.55 }}>{item}</li>
+          {items.map((item, i) => (
+            <li key={i} style={{ marginBottom: 6, fontSize: 14, color: "#2D3436", lineHeight: 1.55 }}>{limpiarInline(item)}</li>
           ))}
         </ol>
       );
@@ -147,7 +165,7 @@ function RespuestaFormateada({ texto }: { texto: string }) {
     // Recordatorio — estilo especial
     if (trimmed.startsWith("[RECORDATORIO")) {
       flushLista();
-      elements.push(
+      elementos.push(
         <div key={idx} style={{ marginTop: 10, padding: "8px 14px", background: "#FFF0F0", borderRadius: 10, fontSize: 12, color: "#FF6B6B", fontWeight: 600 }}>
           📅 {trimmed.replace(/\[RECORDATORIO:?\s*/i, "").replace("]", "")}
         </div>
@@ -155,39 +173,36 @@ function RespuestaFormateada({ texto }: { texto: string }) {
       return;
     }
 
-    // Título con ** o ### o línea que termina en :
-    const esTitulo = /^\*\*(.+)\*\*$/.test(trimmed) || /^#{1,3}\s/.test(trimmed) || /^📌|^🔹|^✅|^⚡|^🎯|^📋|^💡/.test(trimmed);
-    if (esTitulo) {
+    // Título standalone con ** ** (línea entera en negrita)
+    if (/^\*\*[^*]+\*\*[:\s]*$/.test(trimmed) || /^#{1,3}\s/.test(trimmed)) {
       flushLista();
-      const textoLimpio = trimmed
-        .replace(/^\*\*(.+)\*\*$/, "$1")
-        .replace(/^#{1,3}\s/, "")
-        .replace(/\*\*/g, "");
+      const textoLimpio = trimmed.replace(/\*\*/g, "").replace(/^#{1,3}\s/, "").replace(/:$/, "");
       elementos.push(
-        <div key={idx} style={{ marginTop: 14, marginBottom: 4, fontWeight: "700", fontSize: 14, color: "#2D3436" }}>
+        <div key={idx} style={{ marginTop: 16, marginBottom: 4, fontWeight: "700", fontSize: 14, color: "#FF6B6B", borderLeft: "3px solid #FF6B6B", paddingLeft: 10 }}>
           {textoLimpio}
         </div>
       );
       return;
     }
 
-    // Bullet con - o • o *
-    if (/^[-•*]\s/.test(trimmed)) {
-      const contenido = trimmed.replace(/^[-•*]\s/, "").replace(/\*\*/g, "");
+    // Bullet con - o •
+    if (/^[-•]\s/.test(trimmed)) {
+      const contenido = limpiarInline(trimmed.replace(/^[-•]\s/, ""));
       listaActual.push(contenido);
       return;
     }
 
-    // Lista numerada
+    // Lista numerada — detecta "1. **titulo**: texto" o "1. texto"
     if (/^\d+[.)]\s/.test(trimmed)) {
-      const contenido = trimmed.replace(/^\d+[.)]\s/, "").replace(/\*\*/g, "");
+      const sinNumero = trimmed.replace(/^\d+[.)]\s/, "");
+      const contenido = limpiarInline(sinNumero);
       listaOrdenada.push(contenido);
       return;
     }
 
     // Párrafo normal
     flushLista();
-    const textoLimpio = trimmed.replace(/\*\*/g, "").replace(/\*/g, "");
+    const textoLimpio = limpiarInline(trimmed);
     if (textoLimpio) {
       elementos.push(
         <p key={idx} style={{ margin: "6px 0", fontSize: 14, color: "#2D3436", lineHeight: 1.65 }}>
