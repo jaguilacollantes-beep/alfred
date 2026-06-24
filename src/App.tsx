@@ -99,17 +99,53 @@ function generarICS(recordatorio: Recordatorio): void {
   URL.revokeObjectURL(url);
 }
 
-// ─── Convierte **texto** en <strong> inline ──────────────────────────────────
+// ─── Convierte **texto** en <strong> y URLs en links ────────────────────────
 function limpiarInline(texto: string): React.ReactNode {
-  const partes = texto.split(/(\*\*[^*]+\*\*)/g);
-  if (partes.length === 1) return texto;
+  // Primero detecta URLs
+  const urlRegex = /(https?:\/\/[^\s)]+)/g;
+  const boldRegex = /(\*\*[^*]+\*\*)/g;
+
+  // Split por URLs primero
+  const partesUrl = texto.split(urlRegex);
+  if (partesUrl.length === 1) {
+    // Sin URLs, procesa bold
+    const partesBold = texto.split(boldRegex);
+    if (partesBold.length === 1) return texto;
+    return (
+      <>
+        {partesBold.map((parte, i) => {
+          if (/^\*\*[^*]+\*\*$/.test(parte)) {
+            return <strong key={i} style={{ color: "#2D3436" }}>{parte.replace(/\*\*/g, "")}</strong>;
+          }
+          return parte;
+        })}
+      </>
+    );
+  }
+
   return (
     <>
-      {partes.map((parte, i) => {
-        if (/^\*\*[^*]+\*\*$/.test(parte)) {
-          return <strong key={i} style={{ color: "#2D3436" }}>{parte.replace(/\*\*/g, "")}</strong>;
+      {partesUrl.map((parte, i) => {
+        if (urlRegex.test(parte)) {
+          const dominio = parte.replace(/https?:\/\//, "").replace(/\/.*/,"");
+          return (
+            <a key={i} href={parte} target="_blank" rel="noopener noreferrer" className="alfred-link">
+              🔗 {dominio}
+            </a>
+          );
         }
-        return parte;
+        // Procesa bold en texto normal
+        const partesBold = parte.split(boldRegex);
+        return (
+          <span key={i}>
+            {partesBold.map((pb, j) => {
+              if (/^\*\*[^*]+\*\*$/.test(pb)) {
+                return <strong key={j} style={{ color: "#2D3436" }}>{pb.replace(/\*\*/g, "")}</strong>;
+              }
+              return pb;
+            })}
+          </span>
+        );
       })}
     </>
   );
@@ -150,6 +186,23 @@ function RespuestaFormateada({ texto }: { texto: string }) {
 
   lineas.forEach((linea, idx) => {
     const trimmed = linea.trim();
+
+    // Fuente oficial — bloque especial
+    if (trimmed.startsWith("📌 FUENTE OFICIAL") || trimmed.startsWith("✅ Información obtenida") || trimmed.startsWith("🔗 Tramitar en:")) {
+      flushLista();
+      const esLink = trimmed.startsWith("🔗");
+      elementos.push(
+        <div key={idx} style={{
+          marginTop: esLink ? 4 : 14,
+          fontSize: 12,
+          color: esLink ? "#FF6B6B" : "#2D6A4F",
+          fontWeight: esLink ? "600" : "700",
+        }}>
+          {esLink ? limpiarInline(trimmed) : trimmed}
+        </div>
+      );
+      return;
+    }
 
     // Aviso legal al final — estilo especial
     if (trimmed.startsWith("⚠️")) {
@@ -499,6 +552,26 @@ function App() {
           .header-padding { padding: 16px 20px !important; }
           .fases-grid { grid-template-columns: 1fr !important; }
         }
+        @keyframes pulse {
+          0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+          40% { opacity: 1; transform: scale(1.2); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0.2; transform: translateX(-4px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        .alfred-link {
+          color: #FF6B6B;
+          font-weight: 600;
+          text-decoration: none;
+          border-bottom: 1px solid #FF6B6B44;
+          padding-bottom: 1px;
+        }
+        .alfred-link:hover {
+          border-bottom-color: #FF6B6B;
+          background: #FFF5F5;
+          border-radius: 3px;
+        }
       `}</style>
 
       {/* HEADER */}
@@ -680,9 +753,32 @@ function App() {
 
           {/* Cargando */}
           {cargando && (
-            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px 0" }}>
-              <div style={{ background: "#FFF5F5", borderRadius: "20px 20px 20px 4px", padding: "14px 18px", color: "#888", fontSize: 14 }}>
-                🤖 ALFRED está pensando...
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "16px 0" }}>
+              <div style={{ background: "#FFF5F5", borderRadius: "20px 20px 20px 4px", padding: "14px 20px", maxWidth: "80%" }}>
+                <div style={{ fontWeight: "700", color: "#FF6B6B", fontSize: 11, marginBottom: 10, letterSpacing: 0.3 }}>
+                  🤖 ALFRED · Asistente IA
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {[
+                    { emoji: "🔍", texto: "Clasificando tu pregunta..." },
+                    { emoji: "📚", texto: "Buscando en fuentes oficiales..." },
+                    { emoji: "✍️", texto: "Preparando tu respuesta..." },
+                  ].map((paso, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, opacity: 0.4, animation: `fadeIn 0.5s ease ${i * 1.5}s forwards` }}>
+                      <span style={{ fontSize: 13 }}>{paso.emoji}</span>
+                      <span style={{ fontSize: 13, color: "#636e72" }}>{paso.texto}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "flex", gap: 5, marginTop: 12 }}>
+                  {[0, 1, 2].map(i => (
+                    <span key={i} style={{
+                      width: 8, height: 8, borderRadius: "50%", background: "#FF6B6B",
+                      display: "inline-block",
+                      animation: `pulse 1.2s ease-in-out ${i * 0.2}s infinite`,
+                    }} />
+                  ))}
+                </div>
               </div>
             </div>
           )}
