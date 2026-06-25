@@ -14,7 +14,7 @@ const itinerarios = [
     pasos: [
       { fase: "Documentación obligatoria", items: ["Renueva el DNI de adulto — cita en interior.gob.es", "Saca el pasaporte si no tienes — 30€ y 10 años de vigencia", "Considera sacarte el carné de conducir (B)", "Crea tu cuenta en importass.gob.es"] },
       { fase: "Finanzas personales", items: ["Abre una cuenta bancaria de adulto sin comisiones", "Aprende la regla 50/30/20: necesidades/ocio/ahorro", "Descarga una app de control de gastos", "Si trabajas: guarda tus nóminas y entiende tu nómina"] },
-      { fase: "Salud y derechos", items: ["Solicita tu tarjeta sanitaria propia en tu centro de salud", "Pide el Bono Cultural Joven — 400€ en boncultura.gob.es", "Conoce tus nuevos derechos: votar, firmar contratos, independencia legal", "Eres penalmente responsable como adulto"] },
+      { fase: "Salud y derechos", items: ["Solicita tu tarjeta sanitaria propia en tu centro de salud", "Pide el Bono Cultural Joven — 400€ en boncultura.gob.es (plazo: 22 jun - 31 oct)", "Novedad 2026: el bono también vale para instrumentos, material artístico y formación cultural", "Conoce tus nuevos derechos: votar, firmar contratos, independencia legal", "Eres penalmente responsable como adulto"] },
       { fase: "Educación y futuro", items: ["Solicita beca MEC si vas a la universidad", "Investiga el Carné Joven Europeo para descuentos", "Considera FP si no vas a la universidad", "Aprende habilidades básicas del hogar"] },
     ],
   },
@@ -23,7 +23,7 @@ const itinerarios = [
     descripcion: "Todo lo que necesitas al empezar tus estudios",
     pasos: [
       { fase: "Antes de empezar", items: ["Matriculación oficial y pago de tasas", "Solicitar beca MEC en becas.educacion.gob.es", "Abrir cuenta bancaria sin comisiones", "Tramitar tarjeta de transporte joven", "Conseguir el carné de estudiante"] },
-      { fase: "Primeras semanas", items: ["Empadronarte si te mudas de ciudad", "Solicitar tarjeta sanitaria", "Activar correo universitario y plataformas", "Conocer servicios de la universidad", "Solicitar el Bono Cultural si eres menor de 23"] },
+      { fase: "Primeras semanas", items: ["Empadronarte si te mudas de ciudad", "Solicitar tarjeta sanitaria", "Activar correo universitario y plataformas", "Conocer servicios de la universidad", "Solicitar el Bono Cultural si cumples 18 años este año — boncultura.gob.es"] },
       { fase: "Durante el curso", items: ["Declaración de la renta si trabajas", "Renovar la beca cada año", "Solicitar Erasmus si quieres estudiar fuera"] },
     ],
   },
@@ -68,7 +68,7 @@ const itinerarios = [
     descripcion: "Cómo encontrar trabajo y conocer tus derechos laborales",
     pasos: [
       { fase: "Antes de empezar", items: ["Crea tu CV actualizado y perfil en LinkedIn", "Regístrate como demandante de empleo en sepe.es", "Obtén tu número de afiliación a la Seguridad Social", "Investiga empresas y sectores que te interesan"] },
-      { fase: "El contrato", items: ["Firma el contrato ANTES de empezar a trabajar", "Verifica que el contrato es indefinido o temporal con fecha", "Comprueba que el salario es igual o mayor al SMI (1.134€/mes en 2024)", "Asegúrate de que te dan de alta en la Seguridad Social"] },
+      { fase: "El contrato", items: ["Firma el contrato ANTES de empezar a trabajar", "Verifica que el contrato es indefinido o temporal con fecha", "Comprueba que el salario es igual o mayor al SMI (1.221€/mes en 2026, exento de IRPF)", "Asegúrate de que te dan de alta en la Seguridad Social"] },
       { fase: "Tus derechos", items: ["30 días de vacaciones anuales mínimo", "Las horas extra deben pagarse o compensarse con descanso", "Tienes derecho a nómina mensual detallada", "Puedes reclamar al SEPE si hay irregularidades"] },
     ],
   },
