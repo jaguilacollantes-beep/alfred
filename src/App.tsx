@@ -10,6 +10,7 @@ const temas = [
 const itinerarios = [
   {
     icono: "🎂", titulo: "Acabo de cumplir 18 años", color: "#FF6B6B",
+    descripcion: "Tu hoja de ruta al llegar a la mayoría de edad",
     pasos: [
       { fase: "Documentación obligatoria", items: ["Renueva el DNI de adulto — cita en interior.gob.es", "Saca el pasaporte si no tienes — 30€ y 10 años de vigencia", "Considera sacarte el carné de conducir (B)", "Crea tu cuenta en importass.gob.es"] },
       { fase: "Finanzas personales", items: ["Abre una cuenta bancaria de adulto sin comisiones", "Aprende la regla 50/30/20: necesidades/ocio/ahorro", "Descarga una app de control de gastos", "Si trabajas: guarda tus nóminas y entiende tu nómina"] },
@@ -19,6 +20,7 @@ const itinerarios = [
   },
   {
     icono: "🎓", titulo: "Llego a la Universidad", color: "#4ECDC4",
+    descripcion: "Todo lo que necesitas al empezar tus estudios",
     pasos: [
       { fase: "Antes de empezar", items: ["Matriculación oficial y pago de tasas", "Solicitar beca MEC en becas.educacion.gob.es", "Abrir cuenta bancaria sin comisiones", "Tramitar tarjeta de transporte joven", "Conseguir el carné de estudiante"] },
       { fase: "Primeras semanas", items: ["Empadronarte si te mudas de ciudad", "Solicitar tarjeta sanitaria", "Activar correo universitario y plataformas", "Conocer servicios de la universidad", "Solicitar el Bono Cultural si eres menor de 23"] },
@@ -27,6 +29,7 @@ const itinerarios = [
   },
   {
     icono: "🏙️", titulo: "Me mudo a una nueva ciudad", color: "#A29BFE",
+    descripcion: "Pasos esenciales para instalarte en tu nuevo hogar",
     pasos: [
       { fase: "Antes de mudarte", items: ["Buscar piso en Idealista o Fotocasa", "Revisar el contrato de alquiler", "Comprobar estado del piso con fotos", "Calcular gastos: alquiler + suministros + comunidad"] },
       { fase: "Primera semana", items: ["Empadronarte en el ayuntamiento", "Cambiar domicilio en banco y Hacienda", "Buscar centro de salud y médico de cabecera", "Dar de alta suministros si no están incluidos"] },
@@ -35,6 +38,7 @@ const itinerarios = [
   },
   {
     icono: "🎨", titulo: "Quiero el Bono Cultural", color: "#55EFC4",
+    descripcion: "400€ gratuitos para cultura y ocio",
     pasos: [
       { fase: "Requisitos", items: ["Tener entre 18 y 23 años", "Ser ciudadano español o residente legal", "No haber disfrutado del bono anteriormente"] },
       { fase: "Cómo solicitarlo", items: ["Accede a boncultura.gob.es", "Regístrate con tu DNI y datos bancarios", "Verifica tu identidad con Cl@ve", "Recibes 400€ en tu cuenta virtual en 24-48h"] },
@@ -43,6 +47,7 @@ const itinerarios = [
   },
   {
     icono: "🏠", titulo: "Voy a alquilar un piso", color: "#FFE66D",
+    descripcion: "Tus derechos y pasos para alquilar con seguridad",
     pasos: [
       { fase: "Antes de firmar", items: ["Pedir el certificado energético", "Verificar que el casero es el propietario", "Revisar cláusulas abusivas", "Calcular: fianza + agencia + primer mes"] },
       { fase: "Al firmar", items: ["Hacer inventario fotográfico del piso", "Registrar el contrato en la Comunidad Autónoma", "Guardar copia del contrato firmado"] },
@@ -51,10 +56,47 @@ const itinerarios = [
   },
   {
     icono: "✈️", titulo: "Voy a viajar al extranjero", color: "#FDCB6E",
+    descripcion: "Documentación y consejos para viajar sin problemas",
     pasos: [
       { fase: "Dentro de la UE", items: ["Solo necesitas el DNI en vigor", "Tarjeta Sanitaria Europea — gratis en seg-social.es", "Avisa a tu banco para evitar bloqueos", "Descarga apps de transporte del destino"] },
       { fase: "Fuera de la UE", items: ["Pasaporte con mínimo 6 meses de validez", "Visado si es necesario — exteriores.gob.es", "Seguro de viaje recomendado", "Regístrate en el MAEC si hay riesgo"] },
       { fase: "Siempre", items: ["Fotocopia del pasaporte guardada aparte", "Número de emergencias del país", "Contacto de la embajada española", "Seguro médico internacional recomendado"] },
+    ],
+  },
+  {
+    icono: "💼", titulo: "Busco mi primer empleo", color: "#74B9FF",
+    descripcion: "Cómo encontrar trabajo y conocer tus derechos laborales",
+    pasos: [
+      { fase: "Antes de empezar", items: ["Crea tu CV actualizado y perfil en LinkedIn", "Regístrate como demandante de empleo en sepe.es", "Obtén tu número de afiliación a la Seguridad Social", "Investiga empresas y sectores que te interesan"] },
+      { fase: "El contrato", items: ["Firma el contrato ANTES de empezar a trabajar", "Verifica que el contrato es indefinido o temporal con fecha", "Comprueba que el salario es igual o mayor al SMI (1.134€/mes en 2024)", "Asegúrate de que te dan de alta en la Seguridad Social"] },
+      { fase: "Tus derechos", items: ["30 días de vacaciones anuales mínimo", "Las horas extra deben pagarse o compensarse con descanso", "Tienes derecho a nómina mensual detallada", "Puedes reclamar al SEPE si hay irregularidades"] },
+    ],
+  },
+  {
+    icono: "🏥", titulo: "Necesito atención médica", color: "#FD79A8",
+    descripcion: "Cómo acceder al sistema sanitario público",
+    pasos: [
+      { fase: "Lo primero", items: ["Solicita tu tarjeta sanitaria en tu centro de salud con el DNI", "Asegúrate de estar empadronado en tu municipio", "Identifica tu centro de salud y médico de cabecera asignado", "Guarda el teléfono de urgencias: 112"] },
+      { fase: "Atención primaria", items: ["Pide cita con tu médico de cabecera por teléfono o app", "Para urgencias no graves: ve al centro de salud", "Para urgencias graves: ve a urgencias del hospital o llama al 112", "Puedes pedir cita con especialista a través de tu médico"] },
+      { fase: "Salud mental", items: ["Pide derivación a psicólogo a través de tu médico de cabecera", "Desde los 18 años puedes pedir cita sin consentimiento parental", "Muchas universidades tienen psicología gratuita para estudiantes", "Si es urgente llama al 024 (línea de atención a conducta suicida)"] },
+    ],
+  },
+  {
+    icono: "💰", titulo: "Quiero empezar a ahorrar", color: "#00CEC9",
+    descripcion: "Hábitos y estrategias para gestionar tu dinero",
+    pasos: [
+      { fase: "Organiza tus finanzas", items: ["Calcula tus ingresos y gastos mensuales reales", "Aplica la regla 50/30/20: necesidades/ocio/ahorro", "Abre una cuenta de ahorro separada de la de gastos", "Usa una app de control de gastos (Fintonic, Money Manager)"] },
+      { fase: "Reduce gastos", items: ["Revisa suscripciones activas y elimina las que no uses", "Cocina en casa más que comer fuera", "Usa transporte público o bicicleta", "Compara precios antes de compras grandes"] },
+      { fase: "Empieza a invertir", items: ["Crea un fondo de emergencia de 3-6 meses de gastos", "Infórmate sobre fondos indexados para largo plazo", "Consulta con un asesor financiero antes de invertir", "Nunca inviertas dinero que no puedas permitirte perder"] },
+    ],
+  },
+  {
+    icono: "🚗", titulo: "Quiero sacarme el carné", color: "#E17055",
+    descripcion: "Pasos para obtener el permiso de conducir en España",
+    pasos: [
+      { fase: "Requisitos previos", items: ["Tener 18 años cumplidos (B)", "DNI o NIE en vigor", "Reconocimiento médico en centro autorizado (unos 25€)", "Foto reciente tamaño carné"] },
+      { fase: "Examen teórico", items: ["Regístrate en la DGT en sede.dgt.gob.es", "Estudia el temario oficial — hay apps gratuitas", "Paga las tasas del examen (94€ aprox)", "El examen tiene 30 preguntas — necesitas 27 correctas"] },
+      { fase: "Examen práctico", items: ["Apúntate a una autoescuela para las clases prácticas", "Mínimo 3 meses tras aprobar el teórico para presentarte", "El examen dura unos 25 minutos en circuito urbano", "Si suspendes puedes repetir pagando nuevas tasas"] },
     ],
   },
 ];
@@ -379,6 +421,7 @@ function App() {
   const [onboardingInput, setOnboardingInput] = useState("");
   const [perfil, setPerfil] = useState<PerfilUsuario>({ edad: "", comunidad: "", situacion: "" });
   const [itinerarioActivo, setItinerarioActivo] = useState<number | null>(null);
+  const [itinerarioProgreso, setItinerarioProgreso] = useState<Record<string, boolean>>({});
   const [formRecordatorio, setFormRecordatorio] = useState<Recordatorio>({ titulo: "", fecha: "", descripcion: "" });
   const [mostrarRecordatorioActual, setMostrarRecordatorioActual] = useState(false);
 
@@ -647,52 +690,140 @@ function App() {
       <div id="itinerarios" className="section-padding" style={{ padding: "60px 40px" }}>
         <div style={{ maxWidth: 960, margin: "0 auto" }}>
           <h2 style={{ textAlign: "center", fontSize: 28, fontWeight: "800", marginBottom: 8, color: "#2D3436" }}>🗺️ Itinerarios de vida adulta</h2>
-          <p style={{ textAlign: "center", color: "#888", marginBottom: 32, fontSize: 15 }}>Elige tu momento vital y te guío paso a paso</p>
-          <div className="itinerarios-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 32 }}>
-            {itinerarios.map((it, i) => (
-              <div key={it.titulo} onClick={() => abrirItinerario(i)}
-                style={{ background: "#fff", borderRadius: 20, padding: 24, cursor: "pointer", boxShadow: itinerarioActivo === i ? `0 8px 32px ${it.color}66` : "0 4px 16px rgba(0,0,0,0.06)", border: `2px solid ${itinerarioActivo === i ? it.color : "transparent"}`, transition: "all 0.2s" }}>
-                <div style={{ fontSize: 36, marginBottom: 10 }}>{it.icono}</div>
-                <div style={{ fontWeight: "700", color: "#2D3436", fontSize: 15, marginBottom: 6 }}>{it.titulo}</div>
-                <div style={{ fontSize: 12, color: "#888" }}>{it.pasos.length} fases · {it.pasos.reduce((a, f) => a + f.items.length, 0)} pasos</div>
-                {itinerarioActivo === i && (
-                  <div style={{ marginTop: 8, background: it.color, color: it.color === "#FFE66D" ? "#2D3436" : "#fff", borderRadius: 12, padding: "4px 10px", fontSize: 11, fontWeight: "700", display: "inline-block" }}>✓ Abierto</div>
-                )}
-              </div>
-            ))}
-          </div>
-          {itinerarioActivo !== null && (
-            <div id="itinerario-panel" style={{ background: "#FAFAFA", borderRadius: 24, padding: 32, border: `2px solid ${itinerarios[itinerarioActivo].color}33`, marginBottom: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ fontSize: 40 }}>{itinerarios[itinerarioActivo].icono}</div>
-                  <div>
-                    <div style={{ fontSize: 22, fontWeight: "800", color: "#2D3436" }}>{itinerarios[itinerarioActivo].titulo}</div>
-                    <div style={{ fontSize: 13, color: "#888" }}>Guía paso a paso</div>
+          <p style={{ textAlign: "center", color: "#888", marginBottom: 32, fontSize: 15 }}>Elige tu momento vital y marca tu progreso paso a paso</p>
+
+          {/* Grid de cards */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 32 }}>
+            {itinerarios.map((it, i) => {
+              const totalPasos = it.pasos.reduce((a, f) => a + f.items.length, 0);
+              const completados = it.pasos.reduce((a, f, fi) =>
+                a + f.items.filter((_, ii) => itinerarioProgreso[`${i}-${fi}-${ii}`]).length, 0);
+              const pct = Math.round(completados / totalPasos * 100);
+              return (
+                <div key={it.titulo} onClick={() => abrirItinerario(i)}
+                  style={{
+                    background: "#fff", borderRadius: 20, padding: "20px 16px", cursor: "pointer",
+                    boxShadow: itinerarioActivo === i ? `0 8px 32px ${it.color}66` : "0 4px 16px rgba(0,0,0,0.06)",
+                    border: `2px solid ${itinerarioActivo === i ? it.color : "transparent"}`,
+                    transition: "all 0.2s", textAlign: "center"
+                  }}>
+                  {/* Emoji grande con fondo de color */}
+                  <div style={{
+                    width: 64, height: 64, borderRadius: "50%",
+                    background: `${it.color}22`, margin: "0 auto 12px",
+                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32
+                  }}>
+                    {it.icono}
+                  </div>
+                  <div style={{ fontWeight: "700", color: "#2D3436", fontSize: 13, marginBottom: 4, lineHeight: 1.3 }}>{it.titulo}</div>
+                  <div style={{ fontSize: 11, color: "#aaa", marginBottom: 10 }}>{it.pasos.length} fases · {totalPasos} pasos</div>
+                  {/* Mini barra de progreso */}
+                  <div style={{ background: "#f0f0f0", borderRadius: 8, height: 4, overflow: "hidden", marginBottom: 6 }}>
+                    <div style={{ background: it.color, height: 4, width: `${pct}%`, transition: "width 0.3s", borderRadius: 8 }} />
+                  </div>
+                  <div style={{ fontSize: 11, color: pct === 100 ? it.color : "#aaa", fontWeight: pct === 100 ? "700" : "400" }}>
+                    {pct === 100 ? "✓ Completado" : pct > 0 ? `${pct}% completado` : "Sin empezar"}
                   </div>
                 </div>
-                <button onClick={() => preguntaRapida(`Tengo dudas sobre: ${itinerarios[itinerarioActivo].titulo}. ¿Puedes ayudarme con más detalle?`)}
-                  style={{ background: itinerarios[itinerarioActivo].color, color: itinerarios[itinerarioActivo].color === "#FFE66D" ? "#2D3436" : "#fff", border: "none", borderRadius: 20, padding: "10px 20px", fontSize: 13, fontWeight: "700", cursor: "pointer" }}>
-                  💬 Preguntarle a ALFRED →
-                </button>
-              </div>
-              <div className="fases-grid" style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(itinerarios[itinerarioActivo].pasos.length, 4)}, 1fr)`, gap: 16 }}>
-                {itinerarios[itinerarioActivo].pasos.map((fase, fi) => (
-                  <div key={fi} style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-                    <div style={{ fontWeight: "700", color: itinerarios[itinerarioActivo].color === "#FFE66D" ? "#b8860b" : itinerarios[itinerarioActivo].color, fontSize: 12, marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                      {fi + 1}. {fase.fase}
+              );
+            })}
+          </div>
+
+          {/* Panel del itinerario activo */}
+          {itinerarioActivo !== null && (() => {
+            const it = itinerarios[itinerarioActivo];
+            const totalPasos = it.pasos.reduce((a, f) => a + f.items.length, 0);
+            const completados = it.pasos.reduce((a, f, fi) =>
+              a + f.items.filter((_, ii) => itinerarioProgreso[`${itinerarioActivo}-${fi}-${ii}`]).length, 0);
+            const pct = Math.round(completados / totalPasos * 100);
+            return (
+              <div id="itinerario-panel" style={{ background: "#FAFAFA", borderRadius: 24, padding: 32, border: `2px solid ${it.color}33`, marginBottom: 16 }}>
+
+                {/* Header con emoji grande */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                    <div style={{
+                      width: 72, height: 72, borderRadius: "50%",
+                      background: `${it.color}22`, display: "flex",
+                      alignItems: "center", justifyContent: "center", fontSize: 40, flexShrink: 0
+                    }}>
+                      {it.icono}
                     </div>
-                    {fase.items.map((item, ii) => (
-                      <div key={ii} style={{ display: "flex", gap: 8, marginBottom: 8, fontSize: 13, color: "#636e72", lineHeight: 1.4 }}>
-                        <span style={{ color: itinerarios[itinerarioActivo].color === "#FFE66D" ? "#b8860b" : itinerarios[itinerarioActivo].color, flexShrink: 0 }}>✓</span>
-                        <span>{item}</span>
-                      </div>
-                    ))}
+                    <div>
+                      <div style={{ fontSize: 22, fontWeight: "800", color: "#2D3436" }}>{it.titulo}</div>
+                      <div style={{ fontSize: 13, color: "#888" }}>{it.descripcion}</div>
+                    </div>
                   </div>
-                ))}
+                  <button onClick={() => preguntaRapida(`Tengo dudas sobre: ${it.titulo}. ¿Puedes ayudarme con más detalle?`)}
+                    style={{ background: it.color, color: it.color === "#FFE66D" ? "#2D3436" : "#fff", border: "none", borderRadius: 20, padding: "10px 20px", fontSize: 13, fontWeight: "700", cursor: "pointer" }}>
+                    💬 Preguntarle a ALFRED →
+                  </button>
+                </div>
+
+                {/* Barra de progreso general */}
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#888", marginBottom: 8 }}>
+                    <span>Progreso: {completados} de {totalPasos} pasos</span>
+                    <span style={{ color: it.color, fontWeight: "700" }}>{pct}%</span>
+                  </div>
+                  <div style={{ background: "#e0e0e0", borderRadius: 8, height: 8, overflow: "hidden" }}>
+                    <div style={{ background: it.color, height: 8, width: `${pct}%`, transition: "width 0.3s", borderRadius: 8 }} />
+                  </div>
+                </div>
+
+                {/* Fases con checkboxes */}
+                <div className="fases-grid" style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(it.pasos.length, 4)}, 1fr)`, gap: 16 }}>
+                  {it.pasos.map((fase, fi) => {
+                    const faseDone = fase.items.filter((_, ii) => itinerarioProgreso[`${itinerarioActivo}-${fi}-${ii}`]).length;
+                    const faseComplete = faseDone === fase.items.length;
+                    return (
+                      <div key={fi} style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", border: faseComplete ? `2px solid ${it.color}44` : "2px solid transparent" }}>
+                        {/* Header de fase */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                          <div style={{
+                            width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                            background: faseComplete ? it.color : `${it.color}22`,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            fontSize: 11, fontWeight: "700",
+                            color: faseComplete ? "#fff" : it.color === "#FFE66D" ? "#b8860b" : it.color
+                          }}>
+                            {faseComplete ? "✓" : fi + 1}
+                          </div>
+                          <div style={{ fontWeight: "700", color: it.color === "#FFE66D" ? "#b8860b" : it.color, fontSize: 12, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                            {fase.fase}
+                          </div>
+                          <div style={{ marginLeft: "auto", fontSize: 11, color: "#aaa" }}>{faseDone}/{fase.items.length}</div>
+                        </div>
+
+                        {/* Items con checkbox */}
+                        {fase.items.map((item, ii) => {
+                          const key = `${itinerarioActivo}-${fi}-${ii}`;
+                          const checked = !!itinerarioProgreso[key];
+                          return (
+                            <div key={ii} onClick={() => setItinerarioProgreso(prev => ({ ...prev, [key]: !prev[key] }))}
+                              style={{ display: "flex", gap: 10, marginBottom: 10, cursor: "pointer", alignItems: "flex-start" }}>
+                              <div style={{
+                                width: 20, height: 20, borderRadius: "50%", flexShrink: 0, marginTop: 1,
+                                border: checked ? "none" : "2px solid #ddd",
+                                background: checked ? it.color : "transparent",
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                transition: "all 0.2s"
+                              }}>
+                                {checked && <span style={{ color: it.color === "#FFE66D" ? "#2D3436" : "#fff", fontSize: 11, fontWeight: "700" }}>✓</span>}
+                              </div>
+                              <span style={{ fontSize: 13, color: checked ? "#aaa" : "#636e72", lineHeight: 1.4, textDecoration: checked ? "line-through" : "none", transition: "all 0.2s" }}>
+                                {item}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
       </div>
 
