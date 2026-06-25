@@ -281,7 +281,7 @@ function App() {
   const [preguntaActual, setPreguntaActual] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
   const [formRec, setFormRec] = useState<Recordatorio>({ titulo: "", fecha: "", descripcion: "" });
-  const [mostrarRecActual, setMostrarRecActual] = useState(false);
+  const [, setMostrarRecActual] = useState(false);
 
   // Voz
   const [escuchando, setEscuchando] = useState(false);
@@ -610,7 +610,7 @@ function App() {
       {/* TABS */}
       <div className="tabs-bar" style={{ display: "flex", borderBottom: "1px solid #f0f0f0", padding: "0 20px", flexShrink: 0 }}>
         {([
-          { id: "itinerario", label: "🗺️ Mi viaje", },
+          { id: "itinerario", label: "🗺️ Mi ruta", },
           { id: "chat", label: "💬 Chat", },
           { id: "temas", label: "📋 Temas", },
         ] as { id: TabApp; label: string }[]).map(tab => (
