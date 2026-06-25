@@ -377,7 +377,7 @@ function IntercambioColapsado({
                 📅 Añadir recordatorio
               </button>
             ) : (
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }} className="recordatorio-form">
                 <input
                   placeholder="Título"
                   value={formRecordatorio.titulo}
@@ -613,11 +613,20 @@ function App() {
           .hero-title { font-size: 36px !important; }
           .temas-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .itinerarios-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .itinerarios-cards-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .hero-padding { padding: 32px 20px !important; }
           .section-padding { padding: 40px 20px !important; }
           .chat-padding { padding: 40px 20px !important; }
           .header-padding { padding: 16px 20px !important; }
           .fases-grid { grid-template-columns: 1fr !important; }
+          .header-perfil { display: none !important; }
+          #itinerario-panel { padding: 16px !important; }
+          .recordatorio-form { flex-direction: column !important; }
+          .recordatorio-form input,
+          .recordatorio-form button { width: 100% !important; box-sizing: border-box !important; }
+          .chat-input-row { gap: 6px !important; }
+          .chat-input-row input { font-size: 16px !important; }
+          .pregunta-rapida-btn { min-height: 44px !important; font-size: 12px !important; padding: 8px 12px !important; }
         }
         @keyframes pulse {
           0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
@@ -649,7 +658,7 @@ function App() {
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
           {perfil.edad && (
-            <div style={{ background: "#FFF5F5", border: "1px solid #FF6B6B33", borderRadius: 24, padding: "6px 14px", fontSize: 12, color: "#FF6B6B", fontWeight: "600", display: "flex", gap: 8 }}>
+            <div className="header-perfil" style={{ background: "#FFF5F5", border: "1px solid #FF6B6B33", borderRadius: 24, padding: "6px 14px", fontSize: 12, color: "#FF6B6B", fontWeight: "600", display: "flex", gap: 8 }}>
               <span>🎂 {perfil.edad} años</span>
               {perfil.comunidad && <span>· 📍 {perfil.comunidad}</span>}
               {perfil.situacion && <span>· {perfil.situacion === "Solo estudio" ? "🎓" : perfil.situacion === "Solo trabajo" ? "💼" : "🎓💼"}</span>}
@@ -719,7 +728,7 @@ function App() {
           <p style={{ textAlign: "center", color: "#888", marginBottom: 32, fontSize: 15 }}>Elige tu momento vital y marca tu progreso paso a paso</p>
 
           {/* Grid de cards */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 32 }}>
+          <div className="itinerarios-cards-grid" style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 32 }}>
             {itinerarios.map((it, i) => {
               const totalPasos = it.pasos.reduce((a, f) => a + f.items.length, 0);
               const completados = it.pasos.reduce((a, f, fi) =>
@@ -869,6 +878,15 @@ function App() {
           </div>
         )}
 
+        {/* Botón limpiar chat visible siempre que haya mensajes */}
+        {!perfil.edad && (intercambios.length > 0 || respuestaActual) && (
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+            <button onClick={limpiarChat} style={{ background: "none", border: "1px solid #FF6B6B44", borderRadius: 8, padding: "4px 10px", fontSize: 11, color: "#FF6B6B", cursor: "pointer" }}>
+              🗑️ Nueva conversación
+            </button>
+          </div>
+        )}
+
         <div style={{ marginBottom: 20, display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
           {(perfil.situacion === "Solo estudio" || perfil.situacion === "Estudio y trabajo"
             ? ["¿Cómo solicito la beca MEC?", "¿Puedo hacer Erasmus?", "¿Cómo me empadrono?", "¿Qué es el Bono Cultural?"]
@@ -877,7 +895,8 @@ function App() {
             : ["¿Qué hago al cumplir 18?", "¿Cómo me empadrono?", "¿Cuánto debo ahorrar?", "¿Qué revisar en un alquiler?"]
           ).map((q) => (
             <button key={q} onClick={() => preguntaRapida(q)}
-              style={{ background: "#fff", border: "2px solid #FF6B6B", borderRadius: 24, padding: "8px 16px", fontSize: 13, cursor: "pointer", color: "#FF6B6B", fontWeight: "600" }}>
+              className="pregunta-rapida-btn"
+              style={{ background: "#fff", border: "2px solid #FF6B6B", borderRadius: 24, padding: "8px 16px", fontSize: 13, cursor: "pointer", color: "#FF6B6B", fontWeight: "600", minHeight: 44 }}>
               {q}
             </button>
           ))}
@@ -990,7 +1009,7 @@ function App() {
                       📅 Añadir recordatorio a este tema
                     </button>
                   ) : (
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", background: "#FFF5F5", borderRadius: 12, padding: "10px 14px" }}>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", background: "#FFF5F5", borderRadius: 12, padding: "10px 14px" }} className="recordatorio-form">
                       <input
                         placeholder="Título del recordatorio"
                         value={formRecordatorio.titulo}
@@ -1022,10 +1041,10 @@ function App() {
         </div>
 
         {/* Input */}
-        <div style={{ display: "flex", gap: 10 }}>
+        <div className="chat-input-row" style={{ display: "flex", gap: 10 }}>
           <input value={pregunta} onChange={(e) => setPregunta(e.target.value)} onKeyDown={(e) => e.key === "Enter" && preguntar()}
             placeholder="Escribe tu pregunta..."
-            style={{ flex: 1, padding: "14px 18px", borderRadius: 16, border: "2px solid #eee", fontSize: 15, outline: "none" }}
+            style={{ flex: 1, padding: "14px 18px", borderRadius: 16, border: "2px solid #eee", fontSize: 16, outline: "none" }}
             onFocus={e => e.target.style.border = "2px solid #FF6B6B"}
             onBlur={e => e.target.style.border = "2px solid #eee"} />
           <button onClick={() => preguntar()} disabled={cargando}
