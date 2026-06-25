@@ -361,6 +361,12 @@ function App() {
     setCargando(true);
     setMostrarRecActual(false);
 
+    const sessionId = sessionStorage.getItem('alfred_session') || (() => {
+      const id = 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+      sessionStorage.setItem('alfred_session', id);
+      return id;
+    })();
+
     const contextoUsuario = `[Situación: ${situacionElegida}. Respuestas onboarding: ${respuestasContexto.join(", ")}. Itinerario activo: ${itinerarios[itinerarioActivo]?.titulo}]`;
 
     try {
@@ -369,7 +375,7 @@ function App() {
       const response = await fetch("https://alfrediaactivo1.app.n8n.cloud/webhook/Chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: historialActualizado.slice(-5).map(m => ({ rol: m.rol, texto: m.texto })), contextoUsuario }),
+        body: JSON.stringify({ question: historialActualizado.slice(-5).map(m => ({ rol: m.rol, texto: m.texto })), contextoUsuario, sessionId }),
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
