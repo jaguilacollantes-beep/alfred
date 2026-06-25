@@ -40,9 +40,9 @@ const itinerarios = [
     icono: "🎨", titulo: "Quiero el Bono Cultural", color: "#55EFC4",
     descripcion: "400€ gratuitos para cultura y ocio",
     pasos: [
-      { fase: "Requisitos", items: ["Tener entre 18 y 23 años", "Ser ciudadano español o residente legal", "No haber disfrutado del bono anteriormente"] },
-      { fase: "Cómo solicitarlo", items: ["Accede a boncultura.gob.es", "Regístrate con tu DNI y datos bancarios", "Verifica tu identidad con Cl@ve", "Recibes 400€ en tu cuenta virtual en 24-48h"] },
-      { fase: "Cómo usarlo", items: ["Libros, música, cine, teatro, videojuegos", "Válido en Amazon, Fnac, El Corte Inglés", "No es transferible ni canjeable en efectivo", "Úsalo antes de que caduque"] },
+      { fase: "Requisitos", items: ["Cumplir exactamente 18 años en el año en curso (no vale con tener entre 18 y 23)", "Ser ciudadano español o residente legal en España", "No haber disfrutado del bono anteriormente", "Plazo 2026: solicitar entre el 22 de junio y el 31 de octubre"] },
+      { fase: "Cómo solicitarlo", items: ["Accede a boncultura.gob.es", "Regístrate con tu DNI y verificación Cl@ve", "Recibes 400€ en tarjeta prepago virtual en 24-48h", "Tienes 1 año desde la concesión para gastarlo"] },
+      { fase: "Cómo usarlo en 2026", items: ["Libros, música, cine, teatro, videojuegos, podcasts", "NOVEDAD: instrumentos musicales y material artístico", "NOVEDAD: cursos y talleres culturales presenciales u online", "Válido en Amazon, Fnac, El Corte Inglés y ~4.000 comercios adheridos", "No transferible ni canjeable en efectivo"] },
     ],
   },
   {
