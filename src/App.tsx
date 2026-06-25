@@ -425,6 +425,19 @@ function App() {
   const [formRecordatorio, setFormRecordatorio] = useState<Recordatorio>({ titulo: "", fecha: "", descripcion: "" });
   const [mostrarRecordatorioActual, setMostrarRecordatorioActual] = useState(false);
 
+  function actualizarProgreso(key: string, valor: boolean) {
+    setItinerarioProgreso(prev => ({ ...prev, [key]: valor }));
+  }
+
+  function limpiarChat() {
+    setMensajes([]);
+    setIntercambios([]);
+    setRespuestaActual(null);
+    setPreguntaActual(null);
+    setMostrarRecordatorioActual(false);
+    setFormRecordatorio({ titulo: "", fecha: "", descripcion: "" });
+  }
+
   function responderOnboarding(valor: string) {
     if (!valor.trim()) return;
     const campo = ONBOARDING_STEPS[onboardingStep].campo as keyof PerfilUsuario;
@@ -456,26 +469,39 @@ function App() {
 
     const contextoUsuario = `[Perfil del usuario: ${perfil.edad} años, vive en ${perfil.comunidad}, situación: ${perfil.situacion}]`;
 
-    const response = await fetch("https://alfrediaactivo1.app.n8n.cloud/webhook/Chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        question: historialActualizado.slice(-5).map((m) => ({ rol: m.rol, texto: m.texto })),
-        contextoUsuario,
-        perfil,
-      }),
-    });
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-    const data = await response.json();
-    const respuesta = data.text || data.answer || JSON.stringify(data);
-    setMensajes([...historialActualizado, { rol: "alfred", texto: respuesta }]);
-    setRespuestaActual(respuesta);
-    setFormRecordatorio({ titulo: "", fecha: "", descripcion: pregunta });
-    setCargando(false);
-    setMostrarRecordatorioActual(true);
+      const response = await fetch("https://alfrediaactivo1.app.n8n.cloud/webhook/Chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: historialActualizado.slice(-5).map((m) => ({ rol: m.rol, texto: m.texto })),
+          contextoUsuario,
+          perfil,
+        }),
+        signal: controller.signal,
+      });
 
-    // Scroll al chat
-    setTimeout(() => document.getElementById("respuesta-actual")?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
+      clearTimeout(timeoutId);
+      const data = await response.json();
+      const respuesta = data.text || data.answer || JSON.stringify(data);
+      setMensajes([...historialActualizado, { rol: "alfred", texto: respuesta }]);
+      setRespuestaActual(respuesta);
+      setFormRecordatorio({ titulo: "", fecha: "", descripcion: pregunta });
+      setMostrarRecordatorioActual(true);
+      setTimeout(() => document.getElementById("respuesta-actual")?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
+
+    } catch (error: unknown) {
+      const mensajeError = error instanceof Error && error.name === "AbortError"
+        ? "⏱️ ALFRED está tardando más de lo habitual. Por favor inténtalo de nuevo en unos segundos."
+        : "❌ Ha ocurrido un error al conectar con ALFRED. Comprueba tu conexión e inténtalo de nuevo.";
+      setRespuestaActual(mensajeError);
+      setMostrarRecordatorioActual(false);
+    } finally {
+      setCargando(false);
+    }
   }
 
   function preguntaRapida(texto: string) {
@@ -800,7 +826,7 @@ function App() {
                           const key = `${itinerarioActivo}-${fi}-${ii}`;
                           const checked = !!itinerarioProgreso[key];
                           return (
-                            <div key={ii} onClick={() => setItinerarioProgreso(prev => ({ ...prev, [key]: !prev[key] }))}
+                            <div key={ii} onClick={() => actualizarProgreso(`${itinerarioActivo}-${fi}-${ii}`, !itinerarioProgreso[`${itinerarioActivo}-${fi}-${ii}`])}
                               style={{ display: "flex", gap: 10, marginBottom: 10, cursor: "pointer", alignItems: "flex-start" }}>
                               <div style={{
                                 width: 20, height: 20, borderRadius: "50%", flexShrink: 0, marginTop: 1,
@@ -830,16 +856,26 @@ function App() {
       {/* CHAT */}
       <div id="chat" className="chat-padding" style={{ padding: "60px 40px", maxWidth: 760, margin: "0 auto" }}>
         <h2 style={{ textAlign: "center", fontSize: 28, fontWeight: "800", marginBottom: 8, color: "#2D3436" }}>Pregúntame lo que quieras</h2>
-        <p style={{ textAlign: "center", color: "#888", marginBottom: 28, fontSize: 15 }}>Respondo en segundos, con fuentes oficiales</p>
+        <p style={{ textAlign: "center", color: "#888", marginBottom: 28, fontSize: 15 }}>Respondo en segundos, con fuentes oficiales · ✅ Información verificada</p>
 
         {perfil.edad && (
-          <div style={{ background: "#FFF5F5", borderRadius: 12, padding: "10px 16px", marginBottom: 16, fontSize: 13, color: "#636e72", textAlign: "center" }}>
-            🎯 Respuestas personalizadas para <strong>{perfil.edad} años</strong> en <strong>{perfil.comunidad}</strong> · {perfil.situacion}
+          <div style={{ background: "#FFF5F5", borderRadius: 12, padding: "10px 16px", marginBottom: 16, fontSize: 13, color: "#636e72", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+            <span>🎯 Respuestas personalizadas para <strong>{perfil.edad} años</strong> en <strong>{perfil.comunidad}</strong> · {perfil.situacion}</span>
+            {(intercambios.length > 0 || respuestaActual) && (
+              <button onClick={limpiarChat} style={{ background: "none", border: "1px solid #FF6B6B44", borderRadius: 8, padding: "4px 10px", fontSize: 11, color: "#FF6B6B", cursor: "pointer" }}>
+                🗑️ Nueva conversación
+              </button>
+            )}
           </div>
         )}
 
         <div style={{ marginBottom: 20, display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
-          {["¿Qué hago al cumplir 18?", "¿Cómo me empadrono?", "¿Cuánto debo ahorrar?", "¿Qué revisar en un alquiler?"].map((q) => (
+          {(perfil.situacion === "Solo estudio" || perfil.situacion === "Estudio y trabajo"
+            ? ["¿Cómo solicito la beca MEC?", "¿Puedo hacer Erasmus?", "¿Cómo me empadrono?", "¿Qué es el Bono Cultural?"]
+            : perfil.situacion === "Solo trabajo"
+            ? ["¿Cuánto es el SMI en 2026?", "¿Cómo cobro el paro?", "¿Qué revisar en un alquiler?", "¿Cómo hago la declaración de la renta?"]
+            : ["¿Qué hago al cumplir 18?", "¿Cómo me empadrono?", "¿Cuánto debo ahorrar?", "¿Qué revisar en un alquiler?"]
+          ).map((q) => (
             <button key={q} onClick={() => preguntaRapida(q)}
               style={{ background: "#fff", border: "2px solid #FF6B6B", borderRadius: 24, padding: "8px 16px", fontSize: 13, cursor: "pointer", color: "#FF6B6B", fontWeight: "600" }}>
               {q}
