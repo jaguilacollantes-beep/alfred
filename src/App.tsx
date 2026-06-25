@@ -270,6 +270,46 @@ function App() {
   const [situacionElegida, setSituacionElegida] = useState<string>("");
   const [itinerarioActivo, setItinerarioActivo] = useState<number>(0);
   const [itinerarioProgreso, setItinerarioProgreso] = useState<Record<string, boolean>>({});
+  const [descartadas, setDescartadas] = useState<Set<string>>(new Set());
+
+  function descartarTarjeta(id: string) {
+    setDescartadas(prev => new Set([...prev, id]));
+  }
+
+  function generarAcciones(): { id: string; urgencia: string; titulo: string; desc: string; color: string; url: string; secundaria?: boolean }[] {
+    const mes = new Date().getMonth() + 1;
+    const acciones = [];
+    const sit = situacionElegida.toLowerCase();
+
+    // Bono Cultural — junio a octubre
+    if (mes >= 6 && mes <= 10) {
+      acciones.push({ id: "bono", urgencia: "Caduca el 31 de octubre", titulo: "Solicita el Bono Cultural — 400€ gratis", desc: "Solo para quienes cumplen 18 en 2026. Tarda 5 minutos.", color: "#FF6B6B", url: "https://www.boncultura.gob.es" });
+    }
+    // Renta — abril a junio
+    if (mes >= 4 && mes <= 6) {
+      acciones.push({ id: "renta", urgencia: "Plazo hasta el 30 de junio", titulo: "Declaración de la renta 2025", desc: "Si trabajaste en 2025 puede que debas presentarla.", color: "#4ECDC4", url: "https://www.agenciatributaria.gob.es", secundaria: true });
+    }
+    // Becas MEC — agosto y septiembre
+    if (mes >= 8 && mes <= 9) {
+      acciones.push({ id: "beca", urgencia: "Plazo abierto en septiembre", titulo: "Becas MEC — solicítalas ya", desc: "Si estudias en universidad, prepara la documentación.", color: "#4ECDC4", url: "https://www.becas.educacion.gob.es" });
+    }
+    // Siempre: según situación
+    if (sit.includes("18") || sit.includes("cumpl")) {
+      acciones.push({ id: "dni", urgencia: "Trámite prioritario", titulo: "Renueva tu DNI de adulto", desc: "Necesario para todos los trámites. Cita en interior.gob.es.", color: "#A29BFE", url: "https://www.interior.gob.es", secundaria: acciones.length > 0 });
+    }
+    if (sit.includes("uni") || sit.includes("estudi")) {
+      acciones.push({ id: "empad", urgencia: "Obligatorio si te mudas", titulo: "Empadronarte en tu nuevo municipio", desc: "Necesario para la tarjeta sanitaria y ayudas locales.", color: "#55EFC4", url: "https://mptmd.sede.gob.es", secundaria: acciones.length > 0 });
+    }
+    if (sit.includes("trabajo") || sit.includes("emple")) {
+      acciones.push({ id: "ss", urgencia: "Antes de empezar a trabajar", titulo: "Comprueba tu alta en la Seguridad Social", desc: "Tu empresa debe darte de alta el primer día.", color: "#74B9FF", url: "https://www.seg-social.es", secundaria: acciones.length > 0 });
+    }
+    // Fallback si no hay nada específico
+    if (acciones.length === 0) {
+      acciones.push({ id: "tarjeta", urgencia: "Trámite básico", titulo: "Solicita tu tarjeta sanitaria", desc: "Gratuita. Solo necesitas el DNI y el empadronamiento.", color: "#FD79A8", url: "https://www.seg-social.es" });
+      acciones.push({ id: "clave", urgencia: "Te abre todos los trámites online", titulo: "Activa tu Cl@ve", desc: "Con ella puedes hacer todos los trámites desde casa.", color: "#FFE66D", url: "https://sede.gob.es", secundaria: true });
+    }
+    return acciones.filter(a => !descartadas.has(a.id)).slice(0, 3);
+  }
   const [preguntaContextoIdx, setPreguntaContextoIdx] = useState(0);
   const [respuestasContexto, setRespuestasContexto] = useState<string[]>([]);
 
@@ -616,7 +656,7 @@ function App() {
       {/* TABS */}
       <div className="tabs-bar" style={{ display: "flex", borderBottom: "1px solid #f0f0f0", padding: "0 20px", flexShrink: 0 }}>
         {([
-          { id: "itinerario", label: "🗺️ Mi ruta", },
+          { id: "itinerario", label: "🗺️ Mi viaje", },
           { id: "chat", label: "💬 Chat", },
           { id: "temas", label: "📋 Temas", },
         ] as { id: TabApp; label: string }[]).map(tab => (
@@ -633,6 +673,75 @@ function App() {
         {/* ── TAB: ITINERARIO ── */}
         {tabApp === "itinerario" && (
           <div className="tab-content" style={{ padding: "20px", maxWidth: 960, margin: "0 auto" }}>
+
+            {/* DASHBOARD PROACTIVO */}
+            {(() => {
+              const acciones = generarAcciones();
+              if (acciones.length === 0) return null;
+              const principal = acciones.find(a => !a.secundaria) || acciones[0];
+              const secundarias = acciones.filter(a => a !== principal).slice(0, 2);
+              return (
+                <div style={{ marginBottom: 24 }}>
+                  {/* Cabecera con aviso IA */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+                    <span style={{ fontSize: 13, fontWeight: "700", color: "#2D3436" }}>Para ti ahora mismo</span>
+                    <span style={{ fontSize: 10, color: "#aaa" }}>· 🤖 Sugerencias generadas por IA · basadas en tu situación y la fecha actual</span>
+                  </div>
+
+                  {/* Tarjeta principal */}
+                  <div style={{ background: "#fff", borderRadius: 16, border: `0.5px solid ${principal.color}44`, borderLeft: `3px solid ${principal.color}`, padding: "16px 16px 16px 18px", marginBottom: secundarias.length > 0 ? 10 : 0, display: "flex", alignItems: "flex-start", gap: 12, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ background: `${principal.color}22`, color: principal.color === "#FFE66D" ? "#854F0B" : principal.color, borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: "700", display: "inline-block", marginBottom: 8 }}>
+                        ⏰ {principal.urgencia}
+                      </div>
+                      <div style={{ fontSize: 15, fontWeight: "700", color: "#2D3436", marginBottom: 5, lineHeight: 1.3 }}>{principal.titulo}</div>
+                      <div style={{ fontSize: 13, color: "#636e72", marginBottom: 12, lineHeight: 1.5 }}>{principal.desc}</div>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <a href={principal.url} target="_blank" rel="noopener noreferrer"
+                          style={{ background: principal.color, color: principal.color === "#FFE66D" ? "#2D3436" : "#fff", borderRadius: 20, padding: "8px 16px", fontSize: 13, fontWeight: "700", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                          Hacerlo ahora →
+                        </a>
+                        <button onClick={() => preguntaRapida(principal.titulo)}
+                          style={{ background: "none", border: `1.5px solid ${principal.color}55`, borderRadius: 20, padding: "8px 14px", fontSize: 13, color: principal.color === "#FFE66D" ? "#854F0B" : principal.color, cursor: "pointer", fontWeight: "600" }}>
+                          💬 Preguntar a ALFRED
+                        </button>
+                      </div>
+                    </div>
+                    <button onClick={() => descartarTarjeta(principal.id)}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "#ccc", fontSize: 20, lineHeight: 1, flexShrink: 0, padding: 0 }}>
+                      ×
+                    </button>
+                  </div>
+
+                  {/* Tarjetas secundarias */}
+                  {secundarias.length > 0 && (
+                    <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(secundarias.length, 2)}, 1fr)`, gap: 10 }}>
+                      {secundarias.map(ac => (
+                        <div key={ac.id} style={{ background: "#fff", borderRadius: 14, border: "0.5px solid #eee", padding: "14px", display: "flex", alignItems: "flex-start", gap: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ width: 32, height: 32, borderRadius: 8, background: `${ac.color}22`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, marginBottom: 8 }}>
+                              {ac.color === "#4ECDC4" ? "🎓" : ac.color === "#FFE66D" ? "📋" : ac.color === "#A29BFE" ? "🪪" : ac.color === "#74B9FF" ? "💼" : "🏥"}
+                            </div>
+                            <div style={{ fontSize: 13, fontWeight: "700", color: "#2D3436", marginBottom: 4, lineHeight: 1.3 }}>{ac.titulo}</div>
+                            <div style={{ fontSize: 12, color: "#888", marginBottom: 10, lineHeight: 1.4 }}>{ac.desc}</div>
+                            <button onClick={() => preguntaRapida(ac.titulo)}
+                              style={{ background: "none", border: "none", fontSize: 12, color: ac.color === "#FFE66D" ? "#854F0B" : ac.color, cursor: "pointer", fontWeight: "700", padding: 0 }}>
+                              Saber más →
+                            </button>
+                          </div>
+                          <button onClick={() => descartarTarjeta(ac.id)}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "#ccc", fontSize: 16, lineHeight: 1, flexShrink: 0, padding: 0 }}>
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div style={{ borderTop: "1px dashed #f0f0f0", marginTop: 20 }} />
+                </div>
+              );
+            })()}
 
             {/* Selector de itinerario */}
             <div style={{ marginBottom: 20 }}>
