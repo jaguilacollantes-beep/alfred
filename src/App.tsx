@@ -330,6 +330,9 @@ function App() {
   const [itinerarioPersonalizado, setItinerarioPersonalizado] = useState<{titulo:string; descripcion:string; pasos:{fase:string;items:string[]}[]} | null>(null);
   const [cargandoItinerario, setCargandoItinerario] = useState(false);
   const [mostrarTodos, setMostrarTodos] = useState(false);
+  const [ultimoMarcado, setUltimoMarcado] = useState<{key: string; item: string; siguienteItem: string | null; faseCompleta: boolean; tituloFase: string} | null>(null);
+  const [celebracion, setCelebracion] = useState<string | null>(null);
+  const [temaActivo, setTemaActivo] = useState<string | null>(null);
 
   // Chat
   const [pregunta, setPregunta] = useState("");
@@ -392,10 +395,28 @@ function App() {
     }
   }
 
-  function actualizarProgreso(key: string, valor: boolean) {
+  function actualizarProgreso(key: string, valor: boolean, item: string, fi: number, ii: number) {
     setItinerarioProgreso(prev => {
       const next = { ...prev, [key]: valor };
       try { localStorage.setItem('alfred_progreso', JSON.stringify(next)); } catch(e) {}
+
+      if (valor) {
+        const it = itinerarios[itinerarioActivo];
+        const fase = it.pasos[fi];
+        const siguienteItem = fase.items[ii + 1] || (it.pasos[fi + 1]?.items[0]) || null;
+        const faseDone = fase.items.filter((_, idx) => idx === ii ? true : !!next[`${itinerarioActivo}-${fi}-${idx}`]).length;
+        const faseCompleta = faseDone === fase.items.length;
+
+        setUltimoMarcado({ key, item, siguienteItem, faseCompleta, tituloFase: fase.fase });
+
+        // Celebración si fase completa
+        if (faseCompleta) {
+          setCelebracion(fase.fase);
+          setTimeout(() => setCelebracion(null), 3500);
+        }
+      } else {
+        setUltimoMarcado(null);
+      }
       return next;
     });
   }
@@ -591,23 +612,29 @@ function App() {
             <div style={{ flex: 1, height: 1, background: "#f0f0f0" }} />
           </div>
 
-          {/* Input + voz */}
+          {/* Input + voz + enviar */}
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <input
               ref={inputRef}
               value={pregunta}
               onChange={e => setPregunta(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && pregunta.trim()) { setSituacionElegida(pregunta); setPantalla("app"); setTabApp("chat"); preguntar(); } }}
-              placeholder="Escribe tu situación..."
+              placeholder="Di tu situación o escríbela..."
               style={{ flex: 1, padding: "13px 16px", borderRadius: 16, border: "2px solid #eee", fontSize: 15, outline: "none" }}
               onFocus={e => e.target.style.border = "2px solid #FF6B6B"}
               onBlur={e => e.target.style.border = "2px solid #eee"}
             />
             <button
               onClick={toggleVoz}
-              title={escuchando ? "Parar de escuchar" : "Hablar con ALFRED"}
-              style={{ width: 48, height: 48, borderRadius: "50%", background: escuchando ? "#FF6B6B" : "#FFF5F5", border: escuchando ? "none" : "2px solid #FF6B6B33", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0, transition: "all 0.2s" }}>
+              title={escuchando ? "Parar de escuchar" : "Di tu situación"}
+              style={{ width: 46, height: 46, borderRadius: "50%", background: escuchando ? "#FF6B6B" : "#FFF5F5", border: escuchando ? "none" : "2px solid #FF6B6B33", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0, transition: "all 0.2s" }}>
               {escuchando ? "🔴" : "🎤"}
+            </button>
+            <button
+              onClick={() => { if (pregunta.trim()) { setSituacionElegida(pregunta); setPantalla("app"); setTabApp("chat"); preguntar(); } }}
+              disabled={!pregunta.trim()}
+              style={{ width: 46, height: 46, borderRadius: 14, background: pregunta.trim() ? "#FF6B6B" : "#eee", color: pregunta.trim() ? "#fff" : "#aaa", border: "none", cursor: pregunta.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0, fontWeight: "700", boxShadow: pregunta.trim() ? "0 4px 14px rgba(255,107,107,0.4)" : "none", transition: "all 0.2s" }}>
+              →
             </button>
           </div>
           {escuchando && <div style={{ textAlign: "center", fontSize: 12, color: "#FF6B6B", marginTop: 8, animation: "pulse 1.2s infinite" }}>Escuchando... habla ahora</div>}
@@ -710,6 +737,9 @@ function App() {
               {it.icono} {situacionElegida}
             </div>
           )}
+          <div style={{ background: "#FF6B6B22", color: "#FF6B6B", borderRadius: 20, padding: "5px 12px", fontSize: 11, fontWeight: "700", border: "1px solid #FF6B6B33" }}>
+            ⚡ {Object.values(itinerarioProgreso).filter(Boolean).length * 10} XP
+          </div>
           <div style={{ background: "#FF6B6B", color: "#fff", borderRadius: 20, padding: "6px 14px", fontSize: 11, fontWeight: "700" }}>
             IA · Beta gratuita
           </div>
@@ -893,14 +923,37 @@ function App() {
                 </button>
               </div>
 
-              {/* Barra progreso */}
+              {/* Barra progreso + XP */}
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#888", marginBottom: 6 }}>
                 <span>Progreso: {completados} de {totalPasos} pasos</span>
-                <span style={{ color: it.color, fontWeight: "700" }}>{pct}%</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ background: "#FF6B6B22", color: "#FF6B6B", borderRadius: 20, padding: "2px 8px", fontSize: 11, fontWeight: "700" }}>
+                    ⚡ {completados * 10} XP
+                  </span>
+                  <span style={{ color: it.color, fontWeight: "700" }}>{pct}%</span>
+                </div>
               </div>
               <div style={{ background: "#e0e0e0", borderRadius: 8, height: 7, overflow: "hidden" }}>
                 <div style={{ background: it.color, height: 7, width: `${pct}%`, transition: "width 0.3s", borderRadius: 8 }} />
               </div>
+              {/* Celebración fase completa */}
+              {celebracion && (
+                <div style={{ marginTop: 14, background: `${it.color}22`, border: `1.5px solid ${it.color}55`, borderRadius: 14, padding: "12px 16px", display: "flex", alignItems: "center", gap: 12, animation: "fadeIn 0.4s ease" }}>
+                  <span style={{ fontSize: 28 }}>🏆</span>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: "800", color: "#2D3436" }}>¡Fase completada!</div>
+                    <div style={{ fontSize: 12, color: "#636e72" }}>"{celebracion}" — +{it.pasos.find(p => p.fase === celebracion)?.items.length || 0 * 10} XP desbloqueados</div>
+                  </div>
+                  <a href={`https://wa.me/?text=${encodeURIComponent(`🏆 ¡Acabo de completar la fase "${celebracion}" en ALFRED!
+
+Usando ALFRED para gestionar mi vida adulta 💪
+https://alfred-isdi.netlify.app`)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    style={{ marginLeft: "auto", background: "#25D366", color: "#fff", borderRadius: 20, padding: "6px 12px", fontSize: 11, fontWeight: "700", textDecoration: "none", flexShrink: 0 }}>
+                    Compartir 🎉
+                  </a>
+                </div>
+              )}
             </div>
 
             {/* Fases */}
@@ -920,12 +973,25 @@ function App() {
                     {fase.items.map((item, ii) => {
                       const key = `${itinerarioActivo}-${fi}-${ii}`;
                       const checked = !!itinerarioProgreso[key];
+                      const isUltimo = ultimoMarcado?.key === key && checked;
                       return (
-                        <div key={ii} onClick={() => actualizarProgreso(key, !checked)} style={{ display: "flex", gap: 10, marginBottom: 10, cursor: "pointer", alignItems: "flex-start" }}>
-                          <div style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, marginTop: 1, border: checked ? "none" : "2px solid #ddd", background: checked ? it.color : "transparent", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>
-                            {checked && <span style={{ color: it.color === "#FFE66D" ? "#2D3436" : "#fff", fontSize: 11, fontWeight: "700" }}>✓</span>}
+                        <div key={ii} style={{ marginBottom: 10 }}>
+                          <div onClick={() => actualizarProgreso(key, !checked, item, fi, ii)} style={{ display: "flex", gap: 10, cursor: "pointer", alignItems: "flex-start" }}>
+                            <div style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, marginTop: 1, border: checked ? "none" : "2px solid #ddd", background: checked ? it.color : "transparent", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>
+                              {checked && <span style={{ color: it.color === "#FFE66D" ? "#2D3436" : "#fff", fontSize: 11, fontWeight: "700" }}>✓</span>}
+                            </div>
+                            <span style={{ fontSize: 13, color: checked ? "#aaa" : "#636e72", lineHeight: 1.4, textDecoration: checked ? "line-through" : "none", transition: "all 0.2s" }}>{item}</span>
                           </div>
-                          <span style={{ fontSize: 13, color: checked ? "#aaa" : "#636e72", lineHeight: 1.4, textDecoration: checked ? "line-through" : "none", transition: "all 0.2s" }}>{item}</span>
+                          {/* Siguiente paso hint */}
+                          {isUltimo && ultimoMarcado?.siguienteItem && !ultimoMarcado.faseCompleta && (
+                            <div style={{ marginTop: 6, marginLeft: 30, display: "flex", alignItems: "center", gap: 8, background: "#F0FFF4", borderRadius: 10, padding: "7px 12px", animation: "fadeIn 0.3s ease" }}>
+                              <span style={{ fontSize: 11, color: "#2D6A4F" }}>💡 Siguiente: <strong>{ultimoMarcado.siguienteItem}</strong></span>
+                              <button onClick={() => preguntaRapida(`¿Cómo hago esto?: ${ultimoMarcado.siguienteItem}`)}
+                                style={{ background: "none", border: "none", fontSize: 11, color: it.color, cursor: "pointer", fontWeight: "700", padding: 0, flexShrink: 0 }}>
+                                💬 Preguntar →
+                              </button>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -945,14 +1011,20 @@ function App() {
               <div style={{ fontSize: 14, color: "#888" }}>Respondo en segundos · ✅ Fuentes oficiales verificadas</div>
             </div>
 
-            {/* Preguntas rápidas */}
+            {/* Preguntas rápidas contextuales */}
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: 16 }}>
-              {[
-                `¿Qué necesito para ${it.titulo.toLowerCase()}?`,
-                "¿Cómo renuevo el DNI?",
-                "¿Cuánto es el SMI en 2026?",
-                "¿Cómo solicito la beca MEC?",
-              ].map(q => (
+              {((): string[] => {
+                const tema = temaActivo;
+                if (tema === "Trámites") return ["¿Cómo renuevo el DNI?", "¿Cómo me empadrono?", "¿Para qué sirve el certificado digital?", "¿Cómo saco el pasaporte?"];
+                if (tema === "Finanzas") return ["¿Qué es la regla 50/30/20?", "¿Cuándo hago la declaración de la renta?", "¿Qué es el IRPF?", "¿Cómo empiezo a ahorrar?"];
+                if (tema === "Vivienda") return ["¿Qué revisar en un contrato de alquiler?", "¿Qué es la fianza?", "¿Puedo pedir el bono joven de alquiler?", "¿Cuánto dura mínimo un alquiler?"];
+                if (tema === "Viajes") return ["¿Necesito pasaporte para la UE?", "¿Qué es la tarjeta sanitaria europea?", "¿Cómo saco el visado para EEUU?", "¿Qué llevo si viajo fuera de la UE?"];
+                if (tema === "Educación") return ["¿Cómo solicito la beca MEC?", "¿Qué es el Erasmus?", "¿Qué es el Bono Cultural?", "¿Cómo renuevo la beca cada año?"];
+                if (tema === "Trabajo") return ["¿Cuánto es el SMI en 2026?", "¿Cómo cobro el paro?", "¿Qué es el contrato indefinido?", "¿Cuántos días de vacaciones tengo?"];
+                if (tema === "Trámites sanitarios") return ["¿Cómo saco mi tarjeta sanitaria?", "¿Puedo ir al psicólogo por la seguridad social?", "¿Cómo pido cita con el médico?", "¿Qué es la baja médica?"];
+                if (tema === "Carné") return ["¿Cómo me saco el carné de conducir?", "¿Cuánto cuesta el carné tipo B?", "¿Cuántas preguntas tiene el examen teórico?", "¿Cuándo puedo presentarme al práctico?"];
+                return [`¿Qué necesito para ${it.titulo.toLowerCase()}?`, "¿Cómo renuevo el DNI?", "¿Cuánto es el SMI en 2026?", "¿Cómo solicito la beca MEC?"];
+              })().map(q => (
                 <button key={q} onClick={() => preguntaRapida(q)}
                   style={{ background: "#fff", border: "2px solid #FF6B6B", borderRadius: 24, padding: "8px 14px", fontSize: 12, cursor: "pointer", color: "#FF6B6B", fontWeight: "600" }}>
                   {q}
@@ -1089,8 +1161,8 @@ function App() {
                 { icono: "🏥", titulo: "Trámites sanitarios", desc: "Tarjeta sanitaria, médico, salud mental", q: "¿Cómo accedo al sistema sanitario público?" },
                 { icono: "🚗", titulo: "Carné", desc: "Permiso B, DGT, autoescuela", q: "¿Cuáles son los pasos para sacarme el carné?" },
               ].map(t => (
-                <div key={t.titulo} onClick={() => { preguntaRapida(t.q); }}
-                  style={{ background: "#fff", borderRadius: 18, padding: "18px 16px", boxShadow: "0 3px 12px rgba(0,0,0,0.07)", cursor: "pointer", borderTop: "3px solid #FF6B6B22", transition: "all 0.15s" }}
+                <div key={t.titulo} onClick={() => { setTemaActivo(t.titulo); preguntaRapida(t.q); }}
+                  style={{ background: temaActivo === t.titulo ? "#FFF5F5" : "#fff", borderRadius: 18, padding: "18px 16px", boxShadow: "0 3px 12px rgba(0,0,0,0.07)", cursor: "pointer", borderTop: `3px solid ${temaActivo === t.titulo ? "#FF6B6B" : "#FF6B6B22"}`, transition: "all 0.15s", border: temaActivo === t.titulo ? "1.5px solid #FF6B6B33" : "1.5px solid transparent" }}
                   onMouseOver={e => (e.currentTarget.style.boxShadow = "0 6px 20px rgba(255,107,107,0.15)")}
                   onMouseOut={e => (e.currentTarget.style.boxShadow = "0 3px 12px rgba(0,0,0,0.07)")}>
                   <div style={{ fontSize: 32, marginBottom: 8 }}>{t.icono}</div>
