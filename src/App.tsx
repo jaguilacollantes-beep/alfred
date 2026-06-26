@@ -395,7 +395,7 @@ function App() {
     }
   }
 
-  function actualizarProgreso(key: string, valor: boolean, item: string, fi: number, ii: number) {
+  function actualizarProgreso(key: string, valor: boolean, item: string = '', fi: number = -1, ii: number = -1) {
     setItinerarioProgreso(prev => {
       const next = { ...prev, [key]: valor };
       try { localStorage.setItem('alfred_progreso', JSON.stringify(next)); } catch(e) {}
@@ -870,7 +870,7 @@ function App() {
                           const key = `personalizado-${fi}-${ii}`;
                           const checked = !!itinerarioProgreso[key];
                           return (
-                            <div key={ii} onClick={() => actualizarProgreso(key, !checked)} style={{ display: "flex", gap: 8, marginBottom: 8, cursor: "pointer", alignItems: "flex-start" }}>
+                            <div key={ii} onClick={() => actualizarProgreso(key, !checked, item, -1, -1)} style={{ display: "flex", gap: 8, marginBottom: 8, cursor: "pointer", alignItems: "flex-start" }}>
                               <div style={{ width: 18, height: 18, borderRadius: "50%", flexShrink: 0, marginTop: 1, border: checked ? "none" : "2px solid #ddd", background: checked ? "#FF6B6B" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>
                                 {checked && <span style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>✓</span>}
                               </div>
