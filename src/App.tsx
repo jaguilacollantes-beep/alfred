@@ -253,7 +253,13 @@ function IntercambioColapsado({ intercambio, index, formRec, setFormRec }: { int
       </div>
       {expandido && (
         <div style={{ border: "1.5px solid #FF6B6B44", borderTop: "none", borderRadius: "0 0 16px 16px", background: "#fff", padding: "16px 18px" }}>
-          <div style={{ fontWeight: "500", color: "#888", fontSize: 10, marginBottom: 10, letterSpacing: "0.3px" }}>ALFRED · Asistente IA</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+                    <div style={{ width: 20, height: 20, borderRadius: "50%", background: "#FF6B6B", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff" }} />
+                    </div>
+                    <span style={{ fontWeight: "500", color: "#1a1a1a", fontSize: 11 }}>ALFRED</span>
+                    <span style={{ color: "#bbb", fontSize: 10 }}>· Asistente IA</span>
+                  </div>
           <RespuestaFormateada texto={intercambio.respuesta} />
           <div style={{ marginTop: 12, borderTop: "1px solid #f0f0f0", paddingTop: 10 }}>
             {!mostrarRec ? (
@@ -662,39 +668,39 @@ function App() {
     );
   }
 
-  // ── PANTALLA CCAA ─────────────────────────────────────────────────────────
+  // ── PANTALLA CCAA — integrada en preguntas ───────────────────────────────
   if (mostrarCCAA) {
-    const ccaas = [
-      "Madrid", "Catalunya", "Andalucía", "Comunitat Valenciana",
-      "País Vasco", "Galicia", "Castilla y León", "Canarias",
-      "Castilla-La Mancha", "Murcia", "Aragón", "Extremadura",
-      "Asturias", "Navarra", "Cantabria", "La Rioja", "Baleares",
-      "Ceuta", "Melilla"
-    ];
+    const ccaas = ["Madrid","Catalunya","Andalucía","Comunitat Valenciana","País Vasco","Galicia","Castilla y León","Canarias","Castilla-La Mancha","Murcia","Aragón","Extremadura","Asturias","Navarra","Cantabria","La Rioja","Baleares","Ceuta","Melilla"];
+    const it = itinerarios[itinerarioActivo];
     return (
       <div style={{ minHeight: "100vh", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-        <div style={{ maxWidth: 440, width: "100%", animation: "fadeUp 0.5s ease" }}>
-          <div style={{ fontSize: 10, color: "#FF6B6B", fontWeight: "600", marginBottom: 6, letterSpacing: 0.3 }}>🤖 ALFRED · Asistente IA</div>
-          <div style={{ background: "#FFF5F5", borderRadius: "4px 20px 20px 20px", padding: "16px 18px", marginBottom: 20 }}>
-            <div style={{ fontSize: 16, fontWeight: "700", color: "#2D3436", marginBottom: 6 }}>
-              Una última cosa 📍
+        <style>{`@keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }`}</style>
+        <div style={{ maxWidth: 440, width: "100%", animation: "fadeUp 0.3s ease" }}>
+          {/* Progreso */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#aaa", marginBottom: 8 }}>
+              <span>Última pregunta</span><span>100% completado</span>
             </div>
-            <div style={{ fontSize: 14, color: "#636e72", lineHeight: 1.5 }}>
-              ¿En qué comunidad autónoma vives? Así puedo darte información específica de ayudas al alquiler, abonos de transporte y programas locales para jóvenes.
+            <div style={{ background: "#f0f0f0", borderRadius: 8, height: 5 }}>
+              <div style={{ background: it.color, borderRadius: 8, height: 5, width: "100%", transition: "width 0.3s" }} />
             </div>
           </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, marginBottom: 16 }}>
-            {ccaas.map(ccaa => (
-              <button key={ccaa} onClick={() => elegirCCAA(ccaa)}
-                style={{ background: "#fff", border: "1.5px solid #eee", borderRadius: 12, padding: "10px 12px", fontSize: 13, fontWeight: "500", color: "#2D3436", cursor: "pointer", textAlign: "left", transition: "all 0.15s", fontFamily: "'Inter', sans-serif" }}
-                onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.border = "1.5px solid #FF6B6B"; (e.currentTarget as HTMLButtonElement).style.color = "#FF6B6B"; }}
-                onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.border = "1.5px solid #eee"; (e.currentTarget as HTMLButtonElement).style.color = "#2D3436"; }}>
-                {ccaa}
-              </button>
-            ))}
+          <div style={{ textAlign: "center", marginBottom: 20 }}>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: `${it.color}22`, margin: "0 auto 12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32 }}>{it.icono}</div>
           </div>
-
+          <div style={{ fontSize: 10, color: "#FF6B6B", fontWeight: "600", marginBottom: 6 }}>🤖 ALFRED · Asistente IA</div>
+          <div style={{ background: "#FFF5F5", borderRadius: "4px 20px 20px 20px", padding: "14px 18px", fontSize: 15, fontWeight: "700", color: "#2D3436", lineHeight: 1.4, marginBottom: 16 }}>
+            ¿En qué comunidad autónoma vives?
+            <div style={{ fontSize: 13, fontWeight: "400", color: "#888", marginTop: 4 }}>Para darte ayudas locales, transporte y programas específicos.</div>
+          </div>
+          <select onChange={e => { if (e.target.value) elegirCCAA(e.target.value); }}
+            defaultValue=""
+            style={{ width: "100%", padding: "14px 16px", borderRadius: 14, border: "2px solid #eee", fontSize: 15, color: "#2D3436", background: "#fff", cursor: "pointer", marginBottom: 12, appearance: "none", backgroundImage: "url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23999' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")", backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center" }}
+            onFocus={e => e.target.style.border = "2px solid #FF6B6B"}
+            onBlur={e => e.target.style.border = "2px solid #eee"}>
+            <option value="" disabled>Selecciona tu comunidad autónoma</option>
+            {ccaas.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
           <button onClick={() => elegirCCAA("No especificada")}
             style={{ background: "none", border: "none", color: "#aaa", fontSize: 12, cursor: "pointer", width: "100%", textAlign: "center" }}>
             Prefiero no decirlo
@@ -806,19 +812,21 @@ function App() {
         </div>
       </div>
 
-      {/* TABS — rediseñados */}
-      <div className="tabs-bar" style={{ display: "flex", borderBottom: "0.5px solid #eee", padding: "0 16px", flexShrink: 0, background: "#fff" }}>
-        {([
-          { id: "itinerario", label: "Mi viaje", icon: "ti-map" },
-          { id: "chat", label: "Chat", icon: "ti-message" },
-          { id: "temas", label: "Temas", icon: "ti-layout-grid" },
-        ] as { id: TabApp; label: string; icon: string }[]).map(tab => (
-          <button key={tab.id} onClick={() => setTabApp(tab.id)}
-            style={{ flex: 1, padding: "10px 8px", fontSize: 12, fontWeight: tabApp === tab.id ? "600" : "400", color: tabApp === tab.id ? "#1a1a1a" : "#999", background: "none", border: "none", borderBottom: tabApp === tab.id ? "1.5px solid #1a1a1a" : "1.5px solid transparent", cursor: "pointer", transition: "all 0.15s", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-            <i className={`ti ${tab.icon}`} style={{ fontSize: 16 }} aria-hidden="true" />
-            {tab.label}
-          </button>
-        ))}
+      {/* TABS — con pastilla */}
+      <div className="tabs-bar" style={{ padding: "8px 16px", flexShrink: 0, background: "#fff", borderBottom: "0.5px solid #eee" }}>
+        <div style={{ display: "flex", background: "#F5F5F5", borderRadius: 12, padding: 3, gap: 2 }}>
+          {([
+            { id: "itinerario", label: "Mi viaje", icon: "ti-map" },
+            { id: "chat", label: "Chat", icon: "ti-message" },
+            { id: "temas", label: "Temas", icon: "ti-layout-grid" },
+          ] as { id: TabApp; label: string; icon: string }[]).map(tab => (
+            <button key={tab.id} onClick={() => setTabApp(tab.id)}
+              style={{ flex: 1, padding: "7px 8px", fontSize: 11, fontWeight: tabApp === tab.id ? "600" : "400", color: tabApp === tab.id ? "#1a1a1a" : "#999", background: tabApp === tab.id ? "#fff" : "none", border: tabApp === tab.id ? "0.5px solid #eee" : "none", borderRadius: 10, cursor: "pointer", transition: "all 0.15s", display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+              <i className={`ti ${tab.icon}`} style={{ fontSize: 15 }} aria-hidden="true" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* CONTENIDO TABS */}
@@ -951,20 +959,16 @@ function App() {
               </div>
             )}
 
-            {/* Selector de itinerario */}
+            {/* Selector de itinerario — horizontal scroll */}
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 13, color: "#888", marginBottom: 12 }}>También puede interesarte:</div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
-                {(mostrarTodos ? itinerarios : itinerarios.slice(0, 5)).map((it2, i) => (
+              <div style={{ fontSize: 12, color: "#888", marginBottom: 10, fontWeight: "500" }}>Otros itinerarios</div>
+              <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
+                {itinerarios.map((it2, i) => (
                   <button key={i} onClick={() => setItinerarioActivo(i)}
-                    style={{ background: itinerarioActivo === i ? it2.color : "#f8f9fa", color: itinerarioActivo === i ? (it2.color === "#FFE66D" ? "#2D3436" : "#fff") : "#636e72", border: `2px solid ${itinerarioActivo === i ? it2.color : "transparent"}`, borderRadius: 20, padding: "6px 14px", fontSize: 13, cursor: "pointer", fontWeight: itinerarioActivo === i ? "700" : "400", transition: "all 0.15s" }}>
+                    style={{ background: itinerarioActivo === i ? it2.color : "#f5f5f5", color: itinerarioActivo === i ? (it2.color === "#FFE66D" ? "#2D3436" : "#fff") : "#636e72", border: "none", borderRadius: 20, padding: "6px 14px", fontSize: 12, cursor: "pointer", fontWeight: itinerarioActivo === i ? "600" : "400", transition: "all 0.15s", whiteSpace: "nowrap", flexShrink: 0 }}>
                     {it2.icono} {it2.titulo.split(" ").slice(0, 3).join(" ")}
                   </button>
                 ))}
-                <button onClick={() => setMostrarTodos(!mostrarTodos)}
-                  style={{ background: "none", border: "2px solid #eee", borderRadius: 20, padding: "6px 14px", fontSize: 13, cursor: "pointer", color: "#888", fontWeight: "400" }}>
-                  {mostrarTodos ? "▲ Ver menos" : "▼ Ver todos (10)"}
-                </button>
               </div>
             </div>
 
@@ -1129,7 +1133,13 @@ https://alfred-isdi.netlify.app`)}`}
               {cargando && (
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 0" }}>
                   <div style={{ background: "#FFF5F5", borderRadius: "4px 16px 16px 16px", padding: "12px 16px", maxWidth: "82%" }}>
-                    <div style={{ fontWeight: "500", color: "#888", fontSize: 10, marginBottom: 10, letterSpacing: "0.3px" }}>ALFRED · Asistente IA</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+                    <div style={{ width: 20, height: 20, borderRadius: "50%", background: "#FF6B6B", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff" }} />
+                    </div>
+                    <span style={{ fontWeight: "500", color: "#1a1a1a", fontSize: 11 }}>ALFRED</span>
+                    <span style={{ color: "#bbb", fontSize: 10 }}>· Asistente IA</span>
+                  </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
                       {[{ e: "🔍", t: "Clasificando tu pregunta..." }, { e: "📚", t: "Buscando en fuentes oficiales..." }, { e: "✍️", t: "Preparando tu respuesta..." }].map((p, i) => (
                         <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, opacity: 0.3, animation: `fadeIn 0.5s ease ${i * 1.4}s forwards` }}>
@@ -1153,7 +1163,13 @@ https://alfred-isdi.netlify.app`)}`}
                     </div>
                   </div>
                   <div style={{ background: "#FAFAFA", borderRadius: "4px 16px 16px 16px", padding: "14px 16px", marginBottom: 8, border: "0.5px solid #eee" }}>
-                    <div style={{ fontWeight: "500", color: "#888", fontSize: 10, marginBottom: 8, letterSpacing: "0.3px" }}>ALFRED · Asistente IA</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 8 }}>
+                  <div style={{ width: 20, height: 20, borderRadius: "50%", background: "#FF6B6B", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff" }} />
+                  </div>
+                  <span style={{ fontWeight: "500", color: "#1a1a1a", fontSize: 11 }}>ALFRED</span>
+                  <span style={{ color: "#bbb", fontSize: 10 }}>· Asistente IA</span>
+                </div>
                     <RespuestaFormateada texto={respuestaActual} />
                   </div>
 
@@ -1184,7 +1200,7 @@ https://alfred-isdi.netlify.app`)}`}
             </div>
 
             {/* Input */}
-            <div className="chat-input-row" style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <div className="chat-input-row" style={{ display: "flex", gap: 8, alignItems: "center", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
               <input ref={inputRef} value={pregunta} onChange={e => setPregunta(e.target.value)} onKeyDown={e => e.key === "Enter" && preguntar()}
                 placeholder="Escribe tu pregunta..."
                 style={{ flex: 1, padding: "12px 16px", borderRadius: 12, border: "0.5px solid #ddd", fontSize: 15, outline: "none", background: "#FAFAFA" }}
@@ -1200,7 +1216,7 @@ https://alfred-isdi.netlify.app`)}`}
               </button>
             </div>
 
-            <div style={{ marginTop: 12, padding: "10px 14px", background: "#FFF5F5", borderRadius: 10, fontSize: 11, color: "#aaa", textAlign: "center" }}>
+            <div style={{ marginTop: 12, padding: "10px 14px", background: "#FFF5F5", borderRadius: 10, fontSize: 11, color: "#aaa", textAlign: "center", paddingBottom: "calc(10px + env(safe-area-inset-bottom, 0px))" }}>
               ⚠️ La información de ALFRED es orientativa y no sustituye asesoramiento profesional ni información oficial.
             </div>
           </div>
