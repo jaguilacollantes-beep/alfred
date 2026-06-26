@@ -283,9 +283,10 @@ function App() {
     const acciones = [];
     const sit = situacionElegida.toLowerCase();
 
-    // Bono Cultural — junio a octubre, solo si cumple 18 este año
-    if (mes >= 6 && mes <= 10) {
-      acciones.push({ id: "bono", urgencia: "Caduca el 31 de octubre · Solo nacidos en 2008", titulo: "Bono Cultural 2026 — 400€ gratis", desc: "⚠️ Exclusivo para quienes cumplen exactamente 18 años en 2026 (nacidos en 2008). Si no es tu caso, no puedes solicitarlo.", color: "#FF6B6B", url: "https://www.boncultura.gob.es/inicio" });
+    // Bono Cultural — SOLO si el usuario eligió explícitamente 18 años o bono cultural
+    const eligio18 = sit.includes("18") || sit.includes("bono") || sit.includes("cumpl");
+    if (mes >= 6 && mes <= 10 && eligio18) {
+      acciones.push({ id: "bono", urgencia: "Caduca el 31 de octubre · Solo nacidos en 2008", titulo: "Bono Cultural 2026 — 400€ gratis", desc: "⚠️ Exclusivo para quienes cumplen exactamente 18 años en 2026 (nacidos en 2008).", color: "#FF6B6B", url: "https://www.boncultura.gob.es/inicio" });
     }
     // Renta — abril a junio
     if (mes >= 4 && mes <= 6) {
@@ -310,11 +311,7 @@ function App() {
       acciones.push({ id: "tarjeta", urgencia: "Trámite básico", titulo: "Solicita tu tarjeta sanitaria", desc: "Gratuita. Solo necesitas el DNI y el empadronamiento.", color: "#FD79A8", url: "https://www.seg-social.es" });
       acciones.push({ id: "clave", urgencia: "Te abre todos los trámites online", titulo: "Activa tu Cl@ve", desc: "Con ella puedes hacer todos los trámites desde casa.", color: "#FFE66D", url: "https://sede.gob.es", secundaria: true });
     }
-    // Never show Bono Cultural as main card unless user explicitly chose that itinerary
-    const bonoIdx = acciones.findIndex(a => a.id === "bono");
-    if (bonoIdx !== -1 && !situacionElegida.toLowerCase().includes("bono") && !situacionElegida.toLowerCase().includes("18")) {
-      acciones[bonoIdx].secundaria = true;
-    }
+
     return acciones.filter(a => !descartadas.has(a.id)).slice(0, 3);
   }
   const [preguntaContextoIdx, setPreguntaContextoIdx] = useState(0);
