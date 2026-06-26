@@ -662,8 +662,50 @@ function App() {
     );
   }
 
+  // ── PANTALLA CCAA ─────────────────────────────────────────────────────────
+  if (mostrarCCAA) {
+    const ccaas = [
+      "Madrid", "Catalunya", "Andalucía", "Comunitat Valenciana",
+      "País Vasco", "Galicia", "Castilla y León", "Canarias",
+      "Castilla-La Mancha", "Murcia", "Aragón", "Extremadura",
+      "Asturias", "Navarra", "Cantabria", "La Rioja", "Baleares",
+      "Ceuta", "Melilla"
+    ];
+    return (
+      <div style={{ minHeight: "100vh", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+        <div style={{ maxWidth: 440, width: "100%", animation: "fadeUp 0.5s ease" }}>
+          <div style={{ fontSize: 10, color: "#FF6B6B", fontWeight: "600", marginBottom: 6, letterSpacing: 0.3 }}>🤖 ALFRED · Asistente IA</div>
+          <div style={{ background: "#FFF5F5", borderRadius: "4px 20px 20px 20px", padding: "16px 18px", marginBottom: 20 }}>
+            <div style={{ fontSize: 16, fontWeight: "700", color: "#2D3436", marginBottom: 6 }}>
+              Una última cosa 📍
+            </div>
+            <div style={{ fontSize: 14, color: "#636e72", lineHeight: 1.5 }}>
+              ¿En qué comunidad autónoma vives? Así puedo darte información específica de ayudas al alquiler, abonos de transporte y programas locales para jóvenes.
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, marginBottom: 16 }}>
+            {ccaas.map(ccaa => (
+              <button key={ccaa} onClick={() => elegirCCAA(ccaa)}
+                style={{ background: "#fff", border: "1.5px solid #eee", borderRadius: 12, padding: "10px 12px", fontSize: 13, fontWeight: "500", color: "#2D3436", cursor: "pointer", textAlign: "left", transition: "all 0.15s", fontFamily: "'Inter', sans-serif" }}
+                onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.border = "1.5px solid #FF6B6B"; (e.currentTarget as HTMLButtonElement).style.color = "#FF6B6B"; }}
+                onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.border = "1.5px solid #eee"; (e.currentTarget as HTMLButtonElement).style.color = "#2D3436"; }}>
+                {ccaa}
+              </button>
+            ))}
+          </div>
+
+          <button onClick={() => elegirCCAA("No especificada")}
+            style={{ background: "none", border: "none", color: "#aaa", fontSize: 12, cursor: "pointer", width: "100%", textAlign: "center" }}>
+            Prefiero no decirlo
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // ── PANTALLA 2: Preguntas de contexto ──────────────────────────────────────
-  if (pantalla === "preguntas") {
+  if (pantalla === "preguntas" && !mostrarCCAA) {
     const it = itinerarios[itinerarioActivo];
     const pregObj = it.preguntas[preguntaContextoIdx];
     const progreso = ((preguntaContextoIdx) / it.preguntas.length) * 100;
@@ -709,49 +751,6 @@ function App() {
 
           <button onClick={() => { setPantalla("app"); setTabApp("itinerario"); }} style={{ background: "none", border: "none", color: "#aaa", fontSize: 12, cursor: "pointer", width: "100%", textAlign: "center" }}>
             Saltar y ver el itinerario directamente
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ── PANTALLA CCAA ─────────────────────────────────────────────────────────
-  const esScreenCCAA = mostrarCCAA;
-  if (esScreenCCAA) {
-    const ccaas = [
-      "Madrid", "Catalunya", "Andalucía", "Comunitat Valenciana",
-      "País Vasco", "Galicia", "Castilla y León", "Canarias",
-      "Castilla-La Mancha", "Murcia", "Aragón", "Extremadura",
-      "Asturias", "Navarra", "Cantabria", "La Rioja", "Baleares",
-      "Ceuta", "Melilla"
-    ];
-    return (
-      <div style={{ minHeight: "100vh", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-        <div style={{ maxWidth: 440, width: "100%", animation: "fadeUp 0.5s ease" }}>
-          <div style={{ fontSize: 10, color: "#FF6B6B", fontWeight: "600", marginBottom: 6, letterSpacing: 0.3 }}>🤖 ALFRED · Asistente IA</div>
-          <div style={{ background: "#FFF5F5", borderRadius: "4px 20px 20px 20px", padding: "16px 18px", marginBottom: 20 }}>
-            <div style={{ fontSize: 16, fontWeight: "700", color: "#2D3436", marginBottom: 6 }}>
-              Una última cosa 📍
-            </div>
-            <div style={{ fontSize: 14, color: "#636e72", lineHeight: 1.5 }}>
-              ¿En qué comunidad autónoma vives? Así puedo darte información específica de ayudas al alquiler, abonos de transporte y programas locales para jóvenes.
-            </div>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, marginBottom: 16 }}>
-            {ccaas.map(ccaa => (
-              <button key={ccaa} onClick={() => elegirCCAA(ccaa)}
-                style={{ background: "#fff", border: "1.5px solid #eee", borderRadius: 12, padding: "10px 12px", fontSize: 13, fontWeight: "500", color: "#2D3436", cursor: "pointer", textAlign: "left", transition: "all 0.15s", fontFamily: "'Inter', sans-serif" }}
-                onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.border = "1.5px solid #FF6B6B"; (e.currentTarget as HTMLButtonElement).style.color = "#FF6B6B"; }}
-                onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.border = "1.5px solid #eee"; (e.currentTarget as HTMLButtonElement).style.color = "#2D3436"; }}>
-                {ccaa}
-              </button>
-            ))}
-          </div>
-
-          <button onClick={() => elegirCCAA("No especificada")}
-            style={{ background: "none", border: "none", color: "#aaa", fontSize: 12, cursor: "pointer", width: "100%", textAlign: "center" }}>
-            Prefiero no decirlo
           </button>
         </div>
       </div>
