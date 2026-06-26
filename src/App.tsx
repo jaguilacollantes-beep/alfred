@@ -45,7 +45,7 @@ const itinerarios = [
   },
   {
     icono: "🎨", titulo: "Quiero el Bono Cultural", color: "#55EFC4",
-    descripcion: "400€ gratuitos para cultura y ocio",
+    descripcion: "400€ gratuitos — SOLO para quienes cumplen 18 años en 2026 (nacidos en 2008)",
     preguntas: [
       { texto: "¿Cumples exactamente 18 años este año 2026?", opciones: ["Sí, nazco en 2008", "No, soy de otro año", "No estoy seguro"] },
     ],
@@ -269,7 +269,9 @@ function App() {
   const [tabApp, setTabApp] = useState<TabApp>("itinerario");
   const [situacionElegida, setSituacionElegida] = useState<string>("");
   const [itinerarioActivo, setItinerarioActivo] = useState<number>(0);
-  const [itinerarioProgreso, setItinerarioProgreso] = useState<Record<string, boolean>>({});
+  const [itinerarioProgreso, setItinerarioProgreso] = useState<Record<string, boolean>>(() => {
+    try { const saved = localStorage.getItem('alfred_progreso'); return saved ? JSON.parse(saved) : {}; } catch(e) { return {}; }
+  });
   const [descartadas, setDescartadas] = useState<Set<string>>(new Set());
 
   function descartarTarjeta(id: string) {
@@ -281,9 +283,9 @@ function App() {
     const acciones = [];
     const sit = situacionElegida.toLowerCase();
 
-    // Bono Cultural — junio a octubre
+    // Bono Cultural — junio a octubre, solo si cumple 18 este año
     if (mes >= 6 && mes <= 10) {
-      acciones.push({ id: "bono", urgencia: "Caduca el 31 de octubre", titulo: "Solicita el Bono Cultural — 400€ gratis", desc: "Solo para quienes cumplen 18 en 2026. Tarda 5 minutos.", color: "#FF6B6B", url: "https://www.boncultura.gob.es" });
+      acciones.push({ id: "bono", urgencia: "Caduca el 31 de octubre · Solo nacidos en 2008", titulo: "Bono Cultural 2026 — 400€ gratis", desc: "⚠️ Exclusivo para quienes cumplen exactamente 18 años en 2026 (nacidos en 2008). Si no es tu caso, no puedes solicitarlo.", color: "#FF6B6B", url: "https://www.boncultura.gob.es/inicio" });
     }
     // Renta — abril a junio
     if (mes >= 4 && mes <= 6) {
@@ -307,6 +309,11 @@ function App() {
     if (acciones.length === 0) {
       acciones.push({ id: "tarjeta", urgencia: "Trámite básico", titulo: "Solicita tu tarjeta sanitaria", desc: "Gratuita. Solo necesitas el DNI y el empadronamiento.", color: "#FD79A8", url: "https://www.seg-social.es" });
       acciones.push({ id: "clave", urgencia: "Te abre todos los trámites online", titulo: "Activa tu Cl@ve", desc: "Con ella puedes hacer todos los trámites desde casa.", color: "#FFE66D", url: "https://sede.gob.es", secundaria: true });
+    }
+    // Never show Bono Cultural as main card unless user explicitly chose that itinerary
+    const bonoIdx = acciones.findIndex(a => a.id === "bono");
+    if (bonoIdx !== -1 && !situacionElegida.toLowerCase().includes("bono") && !situacionElegida.toLowerCase().includes("18")) {
+      acciones[bonoIdx].secundaria = true;
     }
     return acciones.filter(a => !descartadas.has(a.id)).slice(0, 3);
   }
@@ -378,7 +385,11 @@ function App() {
   }
 
   function actualizarProgreso(key: string, valor: boolean) {
-    setItinerarioProgreso(prev => ({ ...prev, [key]: valor }));
+    setItinerarioProgreso(prev => {
+      const next = { ...prev, [key]: valor };
+      try { localStorage.setItem('alfred_progreso', JSON.stringify(next)); } catch(e) {}
+      return next;
+    });
   }
 
   function limpiarChat() {
@@ -462,40 +473,59 @@ function App() {
     }
   }
 
-  // ── PANTALLA 0: Términos ────────────────────────────────────────────────────
+  // ── PANTALLA 0: Términos + primera pregunta fusionados ─────────────────────
   if (pantalla === "terminos") {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff", padding: 20 }}>
-        <div style={{ maxWidth: 480, width: "100%", textAlign: "center", padding: 40, borderRadius: 24, boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
-          <div style={{ fontSize: 56, marginBottom: 16 }}>🤖</div>
-          <h2 style={{ fontSize: 26, fontWeight: "800", color: "#2D3436", marginBottom: 12 }}>Bienvenido a ALFRED</h2>
-          <p style={{ color: "#636e72", lineHeight: 1.6, marginBottom: 20, fontSize: 15 }}>
-            Soy un asistente basado en <strong>Inteligencia Artificial</strong>. La información que proporciono es <strong>orientativa</strong> y no sustituye asesoramiento profesional ni información oficial.
-          </p>
-
-          {/* Aviso edad — destacado */}
-          <div style={{ background: "#FFF3CD", border: "1.5px solid #FFB300", borderRadius: 16, padding: "14px 20px", marginBottom: 16, fontSize: 14, color: "#856404", fontWeight: "600", textAlign: "left" }}>
-            🔞 ALFRED está diseñado exclusivamente para mayores de 18 años. Si eres menor, por favor no uses este servicio.
+        <style>{`
+          @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+          .sit-btn-t { background:#fff; border:1.5px solid #eee; border-radius:14px; padding:12px 16px; font-size:14px; font-weight:600; cursor:pointer; color:#2D3436; text-align:left; transition:all 0.15s; display:flex; align-items:center; gap:10px; width:100%; }
+          .sit-btn-t:hover { border-color:#FF6B6B; background:#FFF5F5; }
+        `}</style>
+        <div style={{ maxWidth: 460, width: "100%", animation: "fadeUp 0.4s ease" }}>
+          {/* Header */}
+          <div style={{ textAlign: "center", marginBottom: 24 }}>
+            <div style={{ fontSize: 48, marginBottom: 10 }}>🤖</div>
+            <h2 style={{ fontSize: 24, fontWeight: "800", color: "#2D3436", marginBottom: 6 }}>Bienvenido a ALFRED</h2>
+            <p style={{ color: "#888", fontSize: 13, lineHeight: 1.5 }}>
+              Asistente de <strong>Inteligencia Artificial</strong> · Información orientativa · No sustituye asesoramiento profesional
+            </p>
           </div>
 
-          <div style={{ background: "#FFF5F5", borderRadius: 16, padding: 20, marginBottom: 16, textAlign: "left", fontSize: 14, color: "#636e72", lineHeight: 1.8 }}>
-            <div>✅ Te ayudo con trámites, finanzas, vivienda y viajes</div>
-            <div>⚠️ No soy abogado, asesor financiero ni funcionario</div>
-            <div>📋 Consulta siempre las fuentes oficiales para decisiones importantes</div>
-            <div>🔒 Tus conversaciones pueden guardarse para mejorar el servicio</div>
-            <div>🇪🇺 Cumple con el RGPD, AI Act y la normativa española de protección de datos</div>
+          {/* Aviso edad prominente */}
+          <div style={{ background: "#FFF3CD", border: "1.5px solid #FFB300", borderRadius: 14, padding: "12px 16px", marginBottom: 16, fontSize: 13, color: "#856404", fontWeight: "600", display: "flex", alignItems: "center", gap: 8 }}>
+            🔞 Solo para mayores de 18 años · Cumple RGPD y AI Act
           </div>
 
-          <div style={{ background: "#F0FFF4", border: "1px solid #00b89433", borderRadius: 16, padding: "14px 20px", marginBottom: 24, textAlign: "left", fontSize: 14, color: "#636e72", lineHeight: 1.7 }}>
-            <div style={{ fontWeight: "700", color: "#2D3436", marginBottom: 6 }}>🎯 Cómo funciona</div>
-            <div>Cuando entres, ALFRED te preguntará <strong>qué situación estás viviendo</strong> para guiarte con un itinerario personalizado y respuestas relevantes para ti.</div>
+          {/* Avisos compactos */}
+          <div style={{ background: "#FAFAFA", borderRadius: 14, padding: "12px 16px", marginBottom: 20, fontSize: 13, color: "#636e72", lineHeight: 1.7 }}>
+            <div>✅ Trámites, finanzas, vivienda, viajes y salud</div>
+            <div>⚠️ No soy abogado, médico ni funcionario</div>
+            <div>🔒 Conversaciones guardadas para mejorar el servicio</div>
+          </div>
+
+          {/* Primera pregunta integrada */}
+          <div style={{ marginBottom: 8 }}>
+            <div style={{ fontSize: 10, color: "#FF6B6B", fontWeight: "600", marginBottom: 8, letterSpacing: 0.3 }}>🤖 ALFRED · Asistente IA</div>
+            <div style={{ background: "#FFF5F5", borderRadius: "4px 16px 16px 16px", padding: "14px 16px", fontSize: 15, fontWeight: "700", color: "#2D3436", lineHeight: 1.4, marginBottom: 14 }}>
+              ¿Qué está pasando en tu vida ahora mismo?
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {SITUACIONES.map(s => (
+                <button key={s.label} className="sit-btn-t" onClick={() => elegirSituacion(s.label, s.itinerario)}>
+                  <span style={{ fontSize: 20 }}>{s.emoji}</span>
+                  <span>{s.label}</span>
+                  <span style={{ marginLeft: "auto", color: "#aaa" }}>→</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           <button onClick={() => setPantalla("hero")}
-            style={{ background: "#FF6B6B", color: "#fff", border: "none", borderRadius: 32, padding: "16px 40px", fontSize: 16, fontWeight: "700", cursor: "pointer", width: "100%", boxShadow: "0 8px 24px rgba(255,107,107,0.4)" }}>
-            Tengo más de 18 años — Empezar →
+            style={{ marginTop: 12, background: "none", border: "none", color: "#aaa", fontSize: 12, cursor: "pointer", width: "100%", textAlign: "center" }}>
+            Explorar sin elegir situación →
           </button>
-          <div style={{ marginTop: 14, fontSize: 11, color: "#aaa" }}>Solo para mayores de 18 años · Proyecto ISDI AIEx 2026</div>
+          <div style={{ marginTop: 10, fontSize: 10, color: "#ccc", textAlign: "center" }}>Solo para mayores de 18 años · ISDI AIEx 2026</div>
         </div>
       </div>
     );
@@ -1048,7 +1078,7 @@ function App() {
                 { icono: "✈️", titulo: "Viajes", desc: "Documentación, seguros, visados", q: "¿Qué necesito para viajar al extranjero?" },
                 { icono: "🎓", titulo: "Educación", desc: "Becas, Erasmus, MEC, universidad", q: "¿Cómo solicito la beca MEC?" },
                 { icono: "💼", titulo: "Trabajo", desc: "Contratos, SMI, derechos laborales", q: "¿Cuáles son mis derechos laborales?" },
-                { icono: "🏥", titulo: "Salud", desc: "Tarjeta sanitaria, médico, salud mental", q: "¿Cómo accedo al sistema sanitario público?" },
+                { icono: "🏥", titulo: "Trámites sanitarios", desc: "Tarjeta sanitaria, médico, salud mental", q: "¿Cómo accedo al sistema sanitario público?" },
                 { icono: "🚗", titulo: "Carné", desc: "Permiso B, DGT, autoescuela", q: "¿Cuáles son los pasos para sacarme el carné?" },
               ].map(t => (
                 <div key={t.titulo} onClick={() => { preguntaRapida(t.q); }}
