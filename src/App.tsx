@@ -335,7 +335,7 @@ function App() {
   const [respuestasContexto, setRespuestasContexto] = useState<string[]>([]);
   const [itinerarioPersonalizado, setItinerarioPersonalizado] = useState<{titulo:string; descripcion:string; pasos:{fase:string;items:string[]}[]} | null>(null);
   const [cargandoItinerario, setCargandoItinerario] = useState(false);
-  const [mostrarTodos, setMostrarTodos] = useState(false);
+
   const [ultimoMarcado, setUltimoMarcado] = useState<{key: string; item: string; siguienteItem: string | null; faseCompleta: boolean; tituloFase: string} | null>(null);
   const [celebracion, setCelebracion] = useState<string | null>(null);
   const [temaActivo, setTemaActivo] = useState<string | null>(null);
