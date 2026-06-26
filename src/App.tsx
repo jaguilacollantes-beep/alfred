@@ -312,6 +312,9 @@ function App() {
   }
   const [preguntaContextoIdx, setPreguntaContextoIdx] = useState(0);
   const [respuestasContexto, setRespuestasContexto] = useState<string[]>([]);
+  const [itinerarioPersonalizado, setItinerarioPersonalizado] = useState<{titulo:string; descripcion:string; pasos:{fase:string;items:string[]}[]} | null>(null);
+  const [cargandoItinerario, setCargandoItinerario] = useState(false);
+  const [mostrarTodos, setMostrarTodos] = useState(false);
 
   // Chat
   const [pregunta, setPregunta] = useState("");
@@ -368,6 +371,9 @@ function App() {
     } else {
       setPantalla("app");
       setTabApp("itinerario");
+      // Generate personalised itinerary
+      const it = itinerarios[itinerarioActivo];
+      generarItinerarioPersonalizado(situacionElegida, [...nuevas], it?.titulo || '');
     }
   }
 
@@ -379,6 +385,25 @@ function App() {
     setMensajes([]); setIntercambios([]); setRespuestaActual(null);
     setPreguntaActual(null); setMostrarRecActual(false);
     setFormRec({ titulo: "", fecha: "", descripcion: "" });
+  }
+
+  async function generarItinerarioPersonalizado(sit: string, resp: string[], itBase: string) {
+    setCargandoItinerario(true);
+    try {
+      const response = await fetch("https://alfrediaactivo1.app.n8n.cloud/webhook/itinerario", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ situacion: sit, respuestas: resp, itinerarioActivo: itBase }),
+      });
+      const data = await response.json();
+      if (data && data.titulo && data.pasos) {
+        setItinerarioPersonalizado(data);
+      }
+    } catch (e) {
+      console.error("Error generando itinerario:", e);
+    } finally {
+      setCargandoItinerario(false);
+    }
   }
 
   function preguntaRapida(texto: string) {
@@ -743,16 +768,74 @@ function App() {
               );
             })()}
 
+            {/* ITINERARIO PERSONALIZADO */}
+            {cargandoItinerario && (
+              <div style={{ background: "#FFF5F5", borderRadius: 16, padding: "16px 20px", marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ display: "flex", gap: 4 }}>
+                  {[0,1,2].map(i => <span key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: "#FF6B6B", display: "inline-block", animation: `pulse 1.2s ease-in-out ${i*0.2}s infinite` }} />)}
+                </div>
+                <span style={{ fontSize: 13, color: "#FF6B6B", fontWeight: "600" }}>🤖 ALFRED está generando tu itinerario personalizado...</span>
+              </div>
+            )}
+
+            {itinerarioPersonalizado && !cargandoItinerario && (
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
+                  <span style={{ fontSize: 13, fontWeight: "700", color: "#2D3436" }}>🎯 Tu itinerario personalizado</span>
+                  <span style={{ fontSize: 10, color: "#aaa" }}>· 🤖 Generado por IA para tu situación concreta</span>
+                </div>
+                <div style={{ background: "#fff", borderRadius: 20, border: "2px solid #FF6B6B33", borderLeft: "4px solid #FF6B6B", padding: "20px 24px", boxShadow: "0 4px 20px rgba(255,107,107,0.1)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                    <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#FF6B6B22", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, flexShrink: 0 }}>🎯</div>
+                    <div>
+                      <div style={{ fontSize: 17, fontWeight: "800", color: "#2D3436", marginBottom: 2 }}>{itinerarioPersonalizado.titulo}</div>
+                      <div style={{ fontSize: 13, color: "#888" }}>{itinerarioPersonalizado.descripcion}</div>
+                    </div>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(itinerarioPersonalizado.pasos.length, 2)}, 1fr)`, gap: 12 }}>
+                    {itinerarioPersonalizado.pasos.map((fase, fi) => (
+                      <div key={fi} style={{ background: "#FAFAFA", borderRadius: 14, padding: "14px 16px" }}>
+                        <div style={{ fontSize: 11, fontWeight: "700", color: "#FF6B6B", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>
+                          {fi + 1}. {fase.fase}
+                        </div>
+                        {fase.items.map((item, ii) => {
+                          const key = `personalizado-${fi}-${ii}`;
+                          const checked = !!itinerarioProgreso[key];
+                          return (
+                            <div key={ii} onClick={() => actualizarProgreso(key, !checked)} style={{ display: "flex", gap: 8, marginBottom: 8, cursor: "pointer", alignItems: "flex-start" }}>
+                              <div style={{ width: 18, height: 18, borderRadius: "50%", flexShrink: 0, marginTop: 1, border: checked ? "none" : "2px solid #ddd", background: checked ? "#FF6B6B" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>
+                                {checked && <span style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>✓</span>}
+                              </div>
+                              <span style={{ fontSize: 12, color: checked ? "#aaa" : "#636e72", lineHeight: 1.4, textDecoration: checked ? "line-through" : "none" }}>{item}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={() => preguntaRapida(`Explícame más sobre: ${itinerarioPersonalizado.titulo}`)}
+                    style={{ marginTop: 14, background: "#FF6B6B", color: "#fff", border: "none", borderRadius: 20, padding: "8px 18px", fontSize: 13, fontWeight: "700", cursor: "pointer" }}>
+                    💬 Preguntarle a ALFRED →
+                  </button>
+                </div>
+                <div style={{ borderTop: "1px dashed #f0f0f0", margin: "20px 0" }} />
+              </div>
+            )}
+
             {/* Selector de itinerario */}
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 13, color: "#888", marginBottom: 12 }}>Elige otro itinerario si lo necesitas:</div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {itinerarios.map((it2, i) => (
+              <div style={{ fontSize: 13, color: "#888", marginBottom: 12 }}>También puede interesarte:</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+                {(mostrarTodos ? itinerarios : itinerarios.slice(0, 5)).map((it2, i) => (
                   <button key={i} onClick={() => setItinerarioActivo(i)}
                     style={{ background: itinerarioActivo === i ? it2.color : "#f8f9fa", color: itinerarioActivo === i ? (it2.color === "#FFE66D" ? "#2D3436" : "#fff") : "#636e72", border: `2px solid ${itinerarioActivo === i ? it2.color : "transparent"}`, borderRadius: 20, padding: "6px 14px", fontSize: 13, cursor: "pointer", fontWeight: itinerarioActivo === i ? "700" : "400", transition: "all 0.15s" }}>
                     {it2.icono} {it2.titulo.split(" ").slice(0, 3).join(" ")}
                   </button>
                 ))}
+                <button onClick={() => setMostrarTodos(!mostrarTodos)}
+                  style={{ background: "none", border: "2px solid #eee", borderRadius: 20, padding: "6px 14px", fontSize: 13, cursor: "pointer", color: "#888", fontWeight: "400" }}>
+                  {mostrarTodos ? "▲ Ver menos" : "▼ Ver todos (10)"}
+                </button>
               </div>
             </div>
 
