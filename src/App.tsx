@@ -719,7 +719,7 @@ function App() {
   }
 
   // ── PANTALLA CCAA ─────────────────────────────────────────────────────────
-  const esScreenCCAA = pantalla === "preguntas" && ccaaUsuario === "" && preguntaContextoIdx >= itinerarios[itinerarioActivo]?.preguntas.length;
+  const esScreenCCAA = (pantalla as string) === "preguntas" && ccaaUsuario === "" && preguntaContextoIdx >= (itinerarios[itinerarioActivo]?.preguntas.length ?? 0);
   if (esScreenCCAA) {
     const ccaas = [
       "Madrid", "Catalunya", "Andalucía", "Comunitat Valenciana",
