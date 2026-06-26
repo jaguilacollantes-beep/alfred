@@ -13,7 +13,7 @@ const itinerarios = [
     pasos: [
       { fase: "Documentación obligatoria", items: ["Renueva el DNI de adulto — cita en interior.gob.es", "Saca el pasaporte si no tienes — 30€ y 10 años de vigencia", "Considera sacarte el carné de conducir (B)", "Crea tu cuenta en importass.gob.es"] },
       { fase: "Finanzas personales", items: ["Abre una cuenta bancaria de adulto sin comisiones", "Aprende la regla 50/30/20: necesidades/ocio/ahorro", "Descarga una app de control de gastos", "Si trabajas: guarda tus nóminas y entiende tu nómina"] },
-      { fase: "Salud y derechos", items: ["Solicita tu tarjeta sanitaria propia en tu centro de salud", "Pide el Bono Cultural Joven — 400€ en boncultura.gob.es (plazo: 22 jun - 31 oct)", "Novedad 2026: el bono también vale para instrumentos, material artístico y formación cultural", "Eres penalmente responsable como adulto — conoce tus derechos"] },
+      { fase: "Salud y derechos", items: ["Solicita tu tarjeta sanitaria propia en tu centro de salud", "Pide el Bono Cultural Joven — 400€ en bonoculturajoven.gob.es (plazo: 22 jun - 31 oct)", "Novedad 2026: el bono también vale para instrumentos, material artístico y formación cultural", "Eres penalmente responsable como adulto — conoce tus derechos"] },
       { fase: "Educación y futuro", items: ["Solicita beca MEC si vas a la universidad", "Investiga el Carné Joven Europeo para descuentos", "Considera FP si no vas a la universidad", "Aprende habilidades básicas del hogar"] },
     ],
   },
@@ -51,7 +51,7 @@ const itinerarios = [
     ],
     pasos: [
       { fase: "Requisitos", items: ["Cumplir exactamente 18 años en 2026 (nacidos en 2008)", "Ser ciudadano español o residente legal", "No haber disfrutado del bono anteriormente", "Plazo 2026: solicitar entre el 22 de junio y el 31 de octubre"] },
-      { fase: "Cómo solicitarlo", items: ["Accede a boncultura.gob.es", "Regístrate con tu DNI y verificación Cl@ve", "Recibes 400€ en tarjeta prepago virtual en 24-48h", "Tienes 1 año desde la concesión para gastarlo"] },
+      { fase: "Cómo solicitarlo", items: ["Accede a bonoculturajoven.gob.es", "Regístrate con tu DNI y verificación Cl@ve", "Recibes 400€ en tarjeta prepago virtual en 24-48h", "Tienes 1 año desde la concesión para gastarlo"] },
       { fase: "Cómo usarlo en 2026", items: ["Libros, música, cine, teatro, videojuegos, podcasts", "NOVEDAD: instrumentos musicales y material artístico", "NOVEDAD: cursos y talleres culturales presenciales u online", "Válido en Amazon, Fnac, El Corte Inglés y ~4.000 comercios"] },
     ],
   },
@@ -297,7 +297,7 @@ function App() {
     // Bono Cultural — SOLO si el usuario eligió explícitamente 18 años o bono cultural
     const eligio18 = sit.includes("18") || sit.includes("bono") || sit.includes("cumpl");
     if (mes >= 6 && mes <= 10 && eligio18) {
-      acciones.push({ id: "bono", urgencia: "Caduca el 31 de octubre · Solo nacidos en 2008", titulo: "Bono Cultural 2026 — 400€ gratis", desc: "⚠️ Exclusivo para quienes cumplen exactamente 18 años en 2026 (nacidos en 2008).", color: "#FF6B6B", url: "https://www.boncultura.gob.es/inicio" });
+      acciones.push({ id: "bono", urgencia: "Caduca el 31 de octubre · Solo nacidos en 2008", titulo: "Bono Cultural 2026 — 400€ gratis", desc: "⚠️ Exclusivo para quienes cumplen exactamente 18 años en 2026 (nacidos en 2008).", color: "#FF6B6B", url: "https://bonoculturajoven.gob.es" });
     }
     // Renta — abril a junio
     if (mes >= 4 && mes <= 6) {
@@ -333,6 +333,7 @@ function App() {
   const [ultimoMarcado, setUltimoMarcado] = useState<{key: string; item: string; siguienteItem: string | null; faseCompleta: boolean; tituloFase: string} | null>(null);
   const [celebracion, setCelebracion] = useState<string | null>(null);
   const [temaActivo, setTemaActivo] = useState<string | null>(null);
+  const [ccaaUsuario, setCcaaUsuario] = useState<string>("");
 
   // Chat
   const [pregunta, setPregunta] = useState("");
@@ -393,13 +394,23 @@ function App() {
     const it = itinerarios[itinerarioActivo];
     if (preguntaContextoIdx < it.preguntas.length - 1) {
       setPreguntaContextoIdx(preguntaContextoIdx + 1);
+    } else if (!ccaaUsuario) {
+      // Mostrar pregunta de CCAA antes de pasar a la app
+      setPreguntaContextoIdx(it.preguntas.length); // índice especial para CCAA
     } else {
       setPantalla("app");
       setTabApp("itinerario");
-      // Generate personalised itinerary
-      const it = itinerarios[itinerarioActivo];
-      generarItinerarioPersonalizado(situacionElegida, [...nuevas], it?.titulo || '');
+      const it2 = itinerarios[itinerarioActivo];
+      generarItinerarioPersonalizado(situacionElegida, [...nuevas], it2?.titulo || '');
     }
+  }
+
+  function elegirCCAA(ccaa: string) {
+    setCcaaUsuario(ccaa);
+    setPantalla("app");
+    setTabApp("itinerario");
+    const it = itinerarios[itinerarioActivo];
+    generarItinerarioPersonalizado(situacionElegida, [...respuestasContexto, `CCAA: ${ccaa}`], it?.titulo || '');
   }
 
   function actualizarProgreso(key: string, valor: boolean, item: string = '', fi: number = -1, ii: number = -1) {
@@ -479,7 +490,7 @@ function App() {
       return id;
     })();
 
-    const contextoUsuario = `[Situación: ${situacionElegida}. Respuestas onboarding: ${respuestasContexto.join(", ")}. Itinerario activo: ${itinerarios[itinerarioActivo]?.titulo}]`;
+    const contextoUsuario = `[Situación: ${situacionElegida}. CCAA: ${ccaaUsuario || "no especificada"}. Respuestas onboarding: ${respuestasContexto.join(", ")}. Itinerario activo: ${itinerarios[itinerarioActivo]?.titulo}]`;
 
     try {
       const controller = new AbortController();
@@ -707,6 +718,49 @@ function App() {
     );
   }
 
+  // ── PANTALLA CCAA ─────────────────────────────────────────────────────────
+  const esScreenCCAA = pantalla === "preguntas" && ccaaUsuario === "" && preguntaContextoIdx >= itinerarios[itinerarioActivo]?.preguntas.length;
+  if (esScreenCCAA) {
+    const ccaas = [
+      "Madrid", "Catalunya", "Andalucía", "Comunitat Valenciana",
+      "País Vasco", "Galicia", "Castilla y León", "Canarias",
+      "Castilla-La Mancha", "Murcia", "Aragón", "Extremadura",
+      "Asturias", "Navarra", "Cantabria", "La Rioja", "Baleares",
+      "Ceuta", "Melilla"
+    ];
+    return (
+      <div style={{ minHeight: "100vh", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+        <div style={{ maxWidth: 440, width: "100%", animation: "fadeUp 0.5s ease" }}>
+          <div style={{ fontSize: 10, color: "#FF6B6B", fontWeight: "600", marginBottom: 6, letterSpacing: 0.3 }}>🤖 ALFRED · Asistente IA</div>
+          <div style={{ background: "#FFF5F5", borderRadius: "4px 20px 20px 20px", padding: "16px 18px", marginBottom: 20 }}>
+            <div style={{ fontSize: 16, fontWeight: "700", color: "#2D3436", marginBottom: 6 }}>
+              Una última cosa 📍
+            </div>
+            <div style={{ fontSize: 14, color: "#636e72", lineHeight: 1.5 }}>
+              ¿En qué comunidad autónoma vives? Así puedo darte información específica de ayudas al alquiler, abonos de transporte y programas locales para jóvenes.
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, marginBottom: 16 }}>
+            {ccaas.map(ccaa => (
+              <button key={ccaa} onClick={() => elegirCCAA(ccaa)}
+                style={{ background: "#fff", border: "1.5px solid #eee", borderRadius: 12, padding: "10px 12px", fontSize: 13, fontWeight: "500", color: "#2D3436", cursor: "pointer", textAlign: "left", transition: "all 0.15s", fontFamily: "'Inter', sans-serif" }}
+                onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.border = "1.5px solid #FF6B6B"; (e.currentTarget as HTMLButtonElement).style.color = "#FF6B6B"; }}
+                onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.border = "1.5px solid #eee"; (e.currentTarget as HTMLButtonElement).style.color = "#2D3436"; }}>
+                {ccaa}
+              </button>
+            ))}
+          </div>
+
+          <button onClick={() => elegirCCAA("No especificada")}
+            style={{ background: "none", border: "none", color: "#aaa", fontSize: 12, cursor: "pointer", width: "100%", textAlign: "center" }}>
+            Prefiero no decirlo
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // ── PANTALLA 3: App principal con tabs ─────────────────────────────────────
   const it = itinerarios[itinerarioActivo];
   const totalPasos = it.pasos.reduce((a, f) => a + f.items.length, 0);
@@ -743,8 +797,8 @@ function App() {
         </div>
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           {situacionElegida && (
-            <div style={{ background: "#f5f5f5", borderRadius: 8, padding: "4px 10px", fontSize: 11, color: "#555", fontWeight: "500", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {it.icono} {situacionElegida}
+            <div style={{ background: "#f5f5f5", borderRadius: 8, padding: "4px 10px", fontSize: 11, color: "#555", fontWeight: "500", maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {it.icono} {ccaaUsuario && ccaaUsuario !== "No especificada" ? ccaaUsuario : situacionElegida}
             </div>
           )}
           <div style={{ background: "#F5F0FF", color: "#7F77DD", borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: "600" }}>
