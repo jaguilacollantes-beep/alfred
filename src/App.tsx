@@ -253,7 +253,7 @@ function IntercambioColapsado({ intercambio, index, formRec, setFormRec }: { int
       </div>
       {expandido && (
         <div style={{ border: "1.5px solid #FF6B6B44", borderTop: "none", borderRadius: "0 0 16px 16px", background: "#fff", padding: "16px 18px" }}>
-          <div style={{ fontWeight: "700", color: "#FF6B6B", fontSize: 11, marginBottom: 10 }}>🤖 ALFRED · Asistente IA</div>
+          <div style={{ fontWeight: "500", color: "#888", fontSize: 10, marginBottom: 10, letterSpacing: "0.3px" }}>ALFRED · Asistente IA</div>
           <RespuestaFormateada texto={intercambio.respuesta} />
           <div style={{ marginTop: 12, borderTop: "1px solid #f0f0f0", paddingTop: 10 }}>
             {!mostrarRec ? (
@@ -348,6 +348,13 @@ function App() {
   const [escuchando, setEscuchando] = useState(false);
   const recognitionRef = useRef<any>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // Registrar Service Worker para PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  }, []);
 
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -707,11 +714,14 @@ function App() {
   const pct = Math.round((completados / totalPasos) * 100);
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', sans-serif", minHeight: "100vh", background: "#fff", display: "flex", flexDirection: "column" }}>
+    <div style={{ fontFamily: "'Inter', 'Segoe UI', sans-serif", minHeight: "100vh", background: "#fff", display: "flex", flexDirection: "column" }}>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        * { font-family: 'Inter', 'Segoe UI', sans-serif; }
         @keyframes pulse { 0%,80%,100%{opacity:0.2;transform:scale(0.8);}40%{opacity:1;transform:scale(1.2);} }
         @keyframes fadeIn { from{opacity:0.2;transform:translateX(-4px);}to{opacity:1;transform:translateX(0);} }
-        .alfred-link{color:#FF6B6B;font-weight:600;text-decoration:none;border-bottom:1px solid #FF6B6B44;padding-bottom:1px;}
+        @keyframes slideUp { from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);} }
+        .alfred-link{color:#FF6B6B;font-weight:500;text-decoration:none;border-bottom:1px solid #FF6B6B44;padding-bottom:1px;}
         .alfred-link:hover{border-bottom-color:#FF6B6B;background:#FFF5F5;border-radius:3px;}
         @media(max-width:768px){
           .fases-grid{grid-template-columns:1fr!important;}
@@ -724,37 +734,38 @@ function App() {
         }
       `}</style>
 
-      {/* HEADER */}
-      <div style={{ padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #f0f0f0", flexShrink: 0 }}>
+      {/* HEADER — rediseñado */}
+      <div style={{ padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "0.5px solid #eee", flexShrink: 0, background: "#fff" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <button onClick={() => setPantalla("hero")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 20, padding: 0, marginRight: 4 }}>←</button>
-          <div style={{ fontSize: 20 }}>🤖</div>
-          <div style={{ fontSize: 18, fontWeight: "800", color: "#2D3436" }}>ALFRED</div>
+          <button onClick={() => setPantalla("hero")} style={{ background: "none", border: "none", cursor: "pointer", color: "#888", fontSize: 16, padding: 0, marginRight: 2, lineHeight: 1 }}>←</button>
+          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF6B6B", flexShrink: 0 }} />
+          <div style={{ fontSize: 16, fontWeight: "600", color: "#1a1a1a", letterSpacing: "-0.3px" }}>ALFRED</div>
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           {situacionElegida && (
-            <div style={{ background: "#FFF5F5", border: "1px solid #FF6B6B33", borderRadius: 20, padding: "5px 12px", fontSize: 12, color: "#FF6B6B", fontWeight: "600" }}>
+            <div style={{ background: "#f5f5f5", borderRadius: 8, padding: "4px 10px", fontSize: 11, color: "#555", fontWeight: "500", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {it.icono} {situacionElegida}
             </div>
           )}
-          <div style={{ background: "#FF6B6B22", color: "#FF6B6B", borderRadius: 20, padding: "5px 12px", fontSize: 11, fontWeight: "700", border: "1px solid #FF6B6B33" }}>
+          <div style={{ background: "#F5F0FF", color: "#7F77DD", borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: "600" }}>
             ⚡ {Object.values(itinerarioProgreso).filter(Boolean).length * 10} XP
           </div>
-          <div style={{ background: "#FF6B6B", color: "#fff", borderRadius: 20, padding: "6px 14px", fontSize: 11, fontWeight: "700" }}>
-            IA · Beta gratuita
+          <div style={{ background: "#FF6B6B", color: "#fff", borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: "500" }}>
+            IA · Beta
           </div>
         </div>
       </div>
 
-      {/* TABS */}
-      <div className="tabs-bar" style={{ display: "flex", borderBottom: "1px solid #f0f0f0", padding: "0 20px", flexShrink: 0 }}>
+      {/* TABS — rediseñados */}
+      <div className="tabs-bar" style={{ display: "flex", borderBottom: "0.5px solid #eee", padding: "0 16px", flexShrink: 0, background: "#fff" }}>
         {([
-          { id: "itinerario", label: "🗺️ Mi viaje", },
-          { id: "chat", label: "💬 Chat", },
-          { id: "temas", label: "📋 Temas", },
-        ] as { id: TabApp; label: string }[]).map(tab => (
+          { id: "itinerario", label: "Mi viaje", icon: "ti-map" },
+          { id: "chat", label: "Chat", icon: "ti-message" },
+          { id: "temas", label: "Temas", icon: "ti-layout-grid" },
+        ] as { id: TabApp; label: string; icon: string }[]).map(tab => (
           <button key={tab.id} onClick={() => setTabApp(tab.id)}
-            style={{ flex: 1, padding: "13px 8px", fontSize: 13, fontWeight: tabApp === tab.id ? "700" : "400", color: tabApp === tab.id ? "#FF6B6B" : "#888", background: "none", border: "none", borderBottom: tabApp === tab.id ? "2px solid #FF6B6B" : "2px solid transparent", cursor: "pointer", transition: "all 0.15s" }}>
+            style={{ flex: 1, padding: "10px 8px", fontSize: 12, fontWeight: tabApp === tab.id ? "600" : "400", color: tabApp === tab.id ? "#1a1a1a" : "#999", background: "none", border: "none", borderBottom: tabApp === tab.id ? "1.5px solid #1a1a1a" : "1.5px solid transparent", cursor: "pointer", transition: "all 0.15s", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+            <i className={`ti ${tab.icon}`} style={{ fontSize: 16 }} aria-hidden="true" />
             {tab.label}
           </button>
         ))}
@@ -782,7 +793,7 @@ function App() {
                   </div>
 
                   {/* Tarjeta principal */}
-                  <div style={{ background: "#fff", borderRadius: 16, border: `0.5px solid ${principal.color}44`, borderLeft: `3px solid ${principal.color}`, padding: "16px 16px 16px 18px", marginBottom: secundarias.length > 0 ? 10 : 0, display: "flex", alignItems: "flex-start", gap: 12, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+                  <div style={{ background: "#fff", borderRadius: 16, border: `0.5px solid #eee`, borderLeft: `3px solid ${principal.color}`, padding: "16px 16px 16px 18px", marginBottom: secundarias.length > 0 ? 10 : 0, display: "flex", alignItems: "flex-start", gap: 12, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ background: `${principal.color}22`, color: principal.color === "#FFE66D" ? "#854F0B" : principal.color, borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: "700", display: "inline-block", marginBottom: 8 }}>
                         ⏰ {principal.urgencia}
@@ -908,7 +919,7 @@ function App() {
             </div>
 
             {/* Header itinerario activo */}
-            <div style={{ background: "#FAFAFA", borderRadius: 24, padding: "20px 24px", border: `2px solid ${it.color}33`, marginBottom: 20 }}>
+            <div style={{ background: "#fff", borderRadius: 16, padding: "20px 24px", border: "0.5px solid #eee", marginBottom: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                   <div style={{ width: 64, height: 64, borderRadius: "50%", background: `${it.color}22`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, flexShrink: 0 }}>{it.icono}</div>
@@ -927,7 +938,7 @@ function App() {
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#888", marginBottom: 6 }}>
                 <span>Progreso: {completados} de {totalPasos} pasos</span>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ background: "#FF6B6B22", color: "#FF6B6B", borderRadius: 20, padding: "2px 8px", fontSize: 11, fontWeight: "700" }}>
+                  <span style={{ background: "#F5F0FF", color: "#7F77DD", borderRadius: 8, padding: "2px 8px", fontSize: 11, fontWeight: "600" }}>
                     ⚡ {completados * 10} XP
                   </span>
                   <span style={{ color: it.color, fontWeight: "700" }}>{pct}%</span>
@@ -1068,7 +1079,7 @@ https://alfred-isdi.netlify.app`)}`}
               {cargando && (
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 0" }}>
                   <div style={{ background: "#FFF5F5", borderRadius: "4px 16px 16px 16px", padding: "12px 16px", maxWidth: "82%" }}>
-                    <div style={{ fontWeight: "700", color: "#FF6B6B", fontSize: 11, marginBottom: 10 }}>🤖 ALFRED · Asistente IA</div>
+                    <div style={{ fontWeight: "500", color: "#888", fontSize: 10, marginBottom: 10, letterSpacing: "0.3px" }}>ALFRED · Asistente IA</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
                       {[{ e: "🔍", t: "Clasificando tu pregunta..." }, { e: "📚", t: "Buscando en fuentes oficiales..." }, { e: "✍️", t: "Preparando tu respuesta..." }].map((p, i) => (
                         <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, opacity: 0.3, animation: `fadeIn 0.5s ease ${i * 1.4}s forwards` }}>
@@ -1091,8 +1102,8 @@ https://alfred-isdi.netlify.app`)}`}
                       {preguntaActual}
                     </div>
                   </div>
-                  <div style={{ background: "#F8F9FA", borderRadius: "4px 16px 16px 16px", padding: "14px 16px", marginBottom: 8 }}>
-                    <div style={{ fontWeight: "700", color: "#FF6B6B", fontSize: 11, marginBottom: 8 }}>🤖 ALFRED · Asistente IA</div>
+                  <div style={{ background: "#FAFAFA", borderRadius: "4px 16px 16px 16px", padding: "14px 16px", marginBottom: 8, border: "0.5px solid #eee" }}>
+                    <div style={{ fontWeight: "500", color: "#888", fontSize: 10, marginBottom: 8, letterSpacing: "0.3px" }}>ALFRED · Asistente IA</div>
                     <RespuestaFormateada texto={respuestaActual} />
                   </div>
 
@@ -1126,15 +1137,15 @@ https://alfred-isdi.netlify.app`)}`}
             <div className="chat-input-row" style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <input ref={inputRef} value={pregunta} onChange={e => setPregunta(e.target.value)} onKeyDown={e => e.key === "Enter" && preguntar()}
                 placeholder="Escribe tu pregunta..."
-                style={{ flex: 1, padding: "13px 16px", borderRadius: 16, border: "2px solid #eee", fontSize: 16, outline: "none" }}
-                onFocus={e => e.target.style.border = "2px solid #FF6B6B"}
-                onBlur={e => e.target.style.border = "2px solid #eee"} />
+                style={{ flex: 1, padding: "12px 16px", borderRadius: 12, border: "0.5px solid #ddd", fontSize: 15, outline: "none", background: "#FAFAFA" }}
+                onFocus={e => { e.target.style.border = "1px solid #FF6B6B"; e.target.style.background = "#fff"; }}
+                onBlur={e => { e.target.style.border = "0.5px solid #ddd"; e.target.style.background = "#FAFAFA"; }} />
               <button onClick={toggleVoz} title={escuchando ? "Parar" : "Hablar"}
                 style={{ width: 46, height: 46, borderRadius: "50%", background: escuchando ? "#FF6B6B" : "#FFF5F5", border: escuchando ? "none" : "2px solid #FF6B6B33", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
                 {escuchando ? "🔴" : "🎤"}
               </button>
               <button onClick={preguntar} disabled={cargando}
-                style={{ background: "#FF6B6B", color: "#fff", border: "none", borderRadius: 14, padding: "13px 20px", fontSize: 15, cursor: "pointer", fontWeight: "700", boxShadow: "0 4px 14px rgba(255,107,107,0.4)", flexShrink: 0 }}>
+                style={{ background: "#FF6B6B", color: "#fff", border: "none", borderRadius: 12, padding: "12px 20px", fontSize: 15, cursor: "pointer", fontWeight: "500", flexShrink: 0 }}>
                 {cargando ? "⏳" : "→"}
               </button>
             </div>
@@ -1176,8 +1187,8 @@ https://alfred-isdi.netlify.app`)}`}
       </div>
 
       {/* FOOTER */}
-      <div style={{ textAlign: "center", padding: "16px", color: "#aaa", fontSize: 11, borderTop: "1px solid #f0f0f0", flexShrink: 0 }}>
-        🤖 ALFRED es un asistente de IA · Información orientativa · Solo para mayores de 18 años · ISDI AIEx 2026
+      <div style={{ textAlign: "center", padding: "12px 16px", color: "#bbb", fontSize: 10, borderTop: "0.5px solid #eee", flexShrink: 0, fontWeight: "400", letterSpacing: "0.2px" }}>
+        ALFRED · Asistente de IA · Información orientativa · +18 años · ISDI AIEx 2026
       </div>
     </div>
   );
