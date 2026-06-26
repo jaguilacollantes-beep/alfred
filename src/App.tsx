@@ -213,7 +213,18 @@ function RespuestaFormateada({ texto }: { texto: string }) {
     const t = linea.trim();
     if (t.startsWith("📌 FUENTE OFICIAL") || t.startsWith("✅ Información obtenida") || t.startsWith("🔗 Tramitar en:")) {
       flushLista();
-      elementos.push(<div key={idx} style={{ marginTop: t.startsWith("🔗") ? 4 : 14, fontSize: 12, color: t.startsWith("🔗") ? "#FF6B6B" : "#2D6A4F", fontWeight: t.startsWith("🔗") ? "600" : "700" }}>{t.startsWith("🔗") ? limpiarInline(t) : t}</div>);
+      if (t.startsWith("🔗")) {
+        const urlMatch = t.match(/https?:\/\/[^\s)\]]+/);
+        const url = urlMatch ? urlMatch[0] : null;
+        const dominio = url ? url.replace(/https?:\/\//, "").replace(/\/.*/, "") : "";
+        elementos.push(
+          <div key={idx} style={{ marginTop: 4, fontSize: 12, color: "#FF6B6B", fontWeight: "600" }}>
+            {url ? <span>🔗 Tramitar en: <a href={url} target="_blank" rel="noopener noreferrer" className="alfred-link">{dominio}</a></span> : t}
+          </div>
+        );
+      } else {
+        elementos.push(<div key={idx} style={{ marginTop: 14, fontSize: 12, color: "#2D6A4F", fontWeight: "700" }}>{t}</div>);
+      }
       return;
     }
     if (t.startsWith("⚠️")) { flushLista(); elementos.push(<div key={idx} style={{ marginTop: 14, padding: "10px 14px", background: "#FFF8E1", borderRadius: 10, fontSize: 12, color: "#888", lineHeight: 1.5 }}>{t}</div>); return; }
