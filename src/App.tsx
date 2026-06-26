@@ -695,9 +695,9 @@ function App() {
           </div>
           <select onChange={e => { if (e.target.value) elegirCCAA(e.target.value); }}
             defaultValue=""
-            style={{ width: "100%", padding: "14px 16px", borderRadius: 14, border: "2px solid #eee", fontSize: 15, color: "#2D3436", background: "#fff", cursor: "pointer", marginBottom: 12, appearance: "none", backgroundImage: "url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23999' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")", backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center" }}
-            onFocus={e => e.target.style.border = "2px solid #FF6B6B"}
-            onBlur={e => e.target.style.border = "2px solid #eee"}>
+            style={{ width: "100%", padding: "14px 16px", borderRadius: 14, border: "2px solid #eee", fontSize: 15, color: "#2D3436", background: "#fff", cursor: "pointer", marginBottom: 12 }}
+            onFocus={e => (e.target as HTMLSelectElement).style.border = "2px solid #FF6B6B"}
+            onBlur={e => (e.target as HTMLSelectElement).style.border = "2px solid #eee"}>
             <option value="" disabled>Selecciona tu comunidad autónoma</option>
             {ccaas.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
