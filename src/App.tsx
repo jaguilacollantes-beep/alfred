@@ -334,6 +334,7 @@ function App() {
   const [celebracion, setCelebracion] = useState<string | null>(null);
   const [temaActivo, setTemaActivo] = useState<string | null>(null);
   const [ccaaUsuario, setCcaaUsuario] = useState<string>("");
+  const [mostrarCCAA, setMostrarCCAA] = useState(false);
 
   // Chat
   const [pregunta, setPregunta] = useState("");
@@ -394,19 +395,15 @@ function App() {
     const it = itinerarios[itinerarioActivo];
     if (preguntaContextoIdx < it.preguntas.length - 1) {
       setPreguntaContextoIdx(preguntaContextoIdx + 1);
-    } else if (!ccaaUsuario) {
-      // Mostrar pregunta de CCAA antes de pasar a la app
-      setPreguntaContextoIdx(it.preguntas.length); // índice especial para CCAA
     } else {
-      setPantalla("app");
-      setTabApp("itinerario");
-      const it2 = itinerarios[itinerarioActivo];
-      generarItinerarioPersonalizado(situacionElegida, [...nuevas], it2?.titulo || '');
+      // Última pregunta de onboarding — mostrar selector CCAA
+      setMostrarCCAA(true);
     }
   }
 
   function elegirCCAA(ccaa: string) {
     setCcaaUsuario(ccaa);
+    setMostrarCCAA(false);
     setPantalla("app");
     setTabApp("itinerario");
     const it = itinerarios[itinerarioActivo];
@@ -719,7 +716,7 @@ function App() {
   }
 
   // ── PANTALLA CCAA ─────────────────────────────────────────────────────────
-  const esScreenCCAA = (pantalla as string) === "preguntas" && ccaaUsuario === "" && preguntaContextoIdx >= (itinerarios[itinerarioActivo]?.preguntas.length ?? 0);
+  const esScreenCCAA = mostrarCCAA;
   if (esScreenCCAA) {
     const ccaas = [
       "Madrid", "Catalunya", "Andalucía", "Comunitat Valenciana",
