@@ -1,4 +1,4 @@
-  import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 // ─── Datos ───────────────────────────────────────────────────────────────────
 
@@ -506,9 +506,7 @@ function App() {
       let msg = "❌ Ha ocurrido un error al conectar con ALFRED. Inténtalo de nuevo.";
       if (isTimeout) msg = "⏱️ ALFRED está procesando una consulta compleja. Inténtalo de nuevo en unos segundos.";
       if (isNetwork) msg = "📶 Sin conexión. Comprueba tu red e inténtalo de nuevo.";
-      setRespuestaActual(msg + "
-
-💬 ¿Quieres intentarlo de nuevo?");
+      setRespuestaActual(msg + "\n\n💬 ¿Quieres intentarlo de nuevo?");
       setMostrarRecActual(false);
     } finally {
       setCargando(false);
