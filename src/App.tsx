@@ -712,7 +712,6 @@ function App() {
   if (pantalla === "preguntas" && !mostrarCCAA) {
     const it = itinerarios[itinerarioActivo];
     const pregObj = it.preguntas[preguntaContextoIdx];
-    const progreso = ((preguntaContextoIdx) / it.preguntas.length) * 100;
 
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff", padding: 20 }}>
