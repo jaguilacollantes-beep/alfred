@@ -357,13 +357,6 @@ function App() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Registrar Service Worker para PWA
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
-    }
-  }, []);
-
-  useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       const r = new SpeechRecognition();
@@ -485,11 +478,11 @@ function App() {
 
     const preguntaSobre = pregunta.toLowerCase();
     const esBonoCultural = situacionElegida?.toLowerCase().includes("18") || situacionElegida?.toLowerCase().includes("bono") || preguntaSobre.includes("bono") || preguntaSobre.includes("cultural") || preguntaSobre.includes("400");
-    const contextoUsuario = `[Situación: ${situacionElegida}. CCAA: ${ccaaUsuario || "no especificada"}. Respuestas onboarding: ${respuestasContexto.join(", ")}. Itinerario activo: ${itinerarios[itinerarioActivo]?.titulo}${esBonoCultural ? ". CRITICO: El Bono Cultural Joven 2026 es EXCLUSIVO para personas nacidas en 2008 que cumplen exactamente 18 años en 2026. JAMAS digas que es para 18-25 años. URL correcta: bonoculturajoven.gob.es. Plazo: 22 junio al 31 octubre 2026." : ""}. REGLA: Usa siempre fuentes oficiales del RAG. Si no hay documentos relevantes indicalo con advertencia antes de responder.]`;
+    const contextoUsuario = `[Situación: ${situacionElegida}. CCAA: ${ccaaUsuario || "no especificada"}. Respuestas onboarding: ${respuestasContexto.join(", ")}. Itinerario activo: ${itinerarios[itinerarioActivo]?.titulo}${esBonoCultural ? ". BONO CULTURAL: solo nacidos en 2008. URL: bonoculturajoven.gob.es" : ""}. REGLA: Usa siempre fuentes oficiales del RAG. Si no hay documentos relevantes indicalo con advertencia antes de responder.]`;
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      const timeoutId = setTimeout(() => controller.abort(), 45000);
       const response = await fetch("https://alfrediaactivo1.app.n8n.cloud/webhook/Chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -507,10 +500,14 @@ function App() {
       setMostrarRecActual(true);
       setTimeout(() => document.getElementById("respuesta-actual")?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
     } catch (error: unknown) {
-      const msg = error instanceof Error && error.name === "AbortError"
-        ? "⏱️ ALFRED está tardando más de lo habitual. Por favor inténtalo de nuevo en unos segundos."
-        : "❌ Ha ocurrido un error al conectar con ALFRED. Comprueba tu conexión e inténtalo de nuevo.";
-      setRespuestaActual(msg);
+      const isTimeout = error instanceof Error && error.name === "AbortError";
+      const isNetwork = error instanceof TypeError;
+      let msg = "❌ Ha ocurrido un error al conectar con ALFRED. Inténtalo de nuevo.";
+      if (isTimeout) msg = "⏱️ ALFRED está procesando una consulta compleja. Inténtalo de nuevo en unos segundos.";
+      if (isNetwork) msg = "📶 Sin conexión. Comprueba tu red e inténtalo de nuevo.";
+      setRespuestaActual(msg + "
+
+💬 ¿Quieres intentarlo de nuevo?");
       setMostrarRecActual(false);
     } finally {
       setCargando(false);
