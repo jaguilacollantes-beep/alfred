@@ -335,6 +335,8 @@ function App() {
   const [temaActivo, setTemaActivo] = useState<string | null>(null);
   const [ccaaUsuario, setCcaaUsuario] = useState<string>("");
   const [mostrarCCAA, setMostrarCCAA] = useState(false);
+  const [respLocal, setRespLocal] = useState<string>("");
+  const [ccaaLocal, setCcaaLocal] = useState<string>("");
   const [mostrarOtrosItinerarios, setMostrarOtrosItinerarios] = useState(false);
   const [mostrarSOS, setMostrarSOS] = useState(false);
   const [situacionSOS, setSituacionSOS] = useState<string>("");
@@ -384,6 +386,8 @@ function App() {
     setItinerarioActivo(itIdx);
     setRespuestasContexto([]);
     setMostrarCCAA(false);
+    setRespLocal("");
+    setCcaaLocal("");
     setPantalla("preguntas");
   }
 
@@ -705,9 +709,6 @@ function App() {
     const it = itinerarios[itinerarioActivo];
     const pregObj = it.preguntas[0];
     const ccaas = ["Madrid","Catalunya","Andalucía","Comunitat Valenciana","País Vasco","Galicia","Castilla y León","Canarias","Castilla-La Mancha","Murcia","Aragón","Extremadura","Asturias","Navarra","Cantabria","La Rioja","Baleares","Ceuta","Melilla"];
-    const [respLocal, setRespLocal] = React.useState<string>("");
-    const [ccaaLocal, setCcaaLocal] = React.useState<string>("");
-
     const puedeAvanzar = respLocal !== "" && ccaaLocal !== "";
 
     function avanzar() {
