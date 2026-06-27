@@ -1140,19 +1140,26 @@ https://alfred-isdi.netlify.app`)}`}
                 const faseComplete = faseDone === fase.items.length;
                 const isOpen = faseAbierta === fi;
                 return (
-                  <div key={fi} style={{ background: "#fff", borderRadius: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", border: faseComplete ? `2px solid ${it.color}55` : isOpen ? `2px solid ${it.color}33` : "2px solid transparent", overflow: "hidden" }}>
-                    {/* Header fase — siempre visible, clickable */}
+                  {(() => {
+                    const isLight = it.color === "#FFE66D" || it.color === "#FFF9C4" || it.color === "#FFEAA7";
+                    const headerBg = isOpen ? `${it.color}22` : it.color;
+                    const headerTextColor = isOpen ? (isLight ? "#7a6200" : it.color) : (isLight ? "#5c4800" : "#fff");
+                    const numBg = isOpen ? it.color : (isLight ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.25)");
+                    const numColor = isOpen ? (isLight ? "#5c4800" : "#fff") : (isLight ? "#5c4800" : "#fff");
+                    return (
+                  <div key={fi} style={{ background: "#fff", borderRadius: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", border: faseComplete ? `2px solid ${it.color}` : "none", overflow: "hidden" }}>
+                    {/* Header fase — color sólido cerrado, claro abierto */}
                     <div onClick={() => setFaseAbierta(isOpen ? -1 : fi)}
-                      style={{ display: "flex", alignItems: "center", gap: 8, padding: "16px 20px", cursor: "pointer", userSelect: "none" }}>
-                      <div style={{ width: 22, height: 22, borderRadius: "50%", flexShrink: 0, background: faseComplete ? it.color : `${it.color}22`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: "700", color: faseComplete ? "#fff" : it.color === "#FFE66D" ? "#b8860b" : it.color }}>
+                      style={{ display: "flex", alignItems: "center", gap: 8, padding: "14px 18px", cursor: "pointer", userSelect: "none", background: headerBg, transition: "background 0.2s" }}>
+                      <div style={{ width: 22, height: 22, borderRadius: "50%", flexShrink: 0, background: numBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: "700", color: numColor }}>
                         {faseComplete ? "✓" : fi + 1}
                       </div>
-                      <div style={{ fontWeight: "700", color: it.color === "#FFE66D" ? "#b8860b" : it.color, fontSize: 12, textTransform: "uppercase", letterSpacing: 0.5, flex: 1 }}>{fase.fase}</div>
-                      <div style={{ fontSize: 11, color: "#aaa", marginRight: 6 }}>{faseDone}/{fase.items.length}</div>
-                      <span style={{ fontSize: 12, color: "#aaa", transition: "transform 0.2s", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", display: "inline-block" }}>▼</span>
+                      <div style={{ fontWeight: "700", color: headerTextColor, fontSize: 12, textTransform: "uppercase", letterSpacing: 0.5, flex: 1, transition: "color 0.2s" }}>{fase.fase}</div>
+                      <div style={{ fontSize: 11, color: isOpen ? headerTextColor : (isLight ? "#5c4800" : "rgba(255,255,255,0.75)"), marginRight: 4, opacity: 0.8 }}>{faseDone}/{fase.items.length}</div>
+                      <span style={{ fontSize: 11, color: isOpen ? headerTextColor : (isLight ? "#5c4800" : "rgba(255,255,255,0.75)"), transition: "transform 0.2s", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", display: "inline-block", opacity: 0.8 }}>▼</span>
                     </div>
-                    {/* Items — solo visibles si fase abierta */}
-                    {isOpen && <div style={{ padding: "0 20px 16px" }}>
+                    {/* Items — solo visibles si fase abierta, fondo muy claro del color */}
+                    {isOpen && <div style={{ padding: "14px 18px 16px", background: `${it.color}10` }}>
                     {fase.items.map((item, ii) => {
                       const key = `${itinerarioActivo}-${fi}-${ii}`;
                       const checked = !!itinerarioProgreso[key];
@@ -1192,6 +1199,8 @@ https://alfred-isdi.netlify.app`)}`}
                     })}
                     </div>}
                   </div>
+                    );
+                  })()}
                 );
               })}
             </div>
