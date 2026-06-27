@@ -326,7 +326,6 @@ function App() {
 
     return acciones.filter(a => !descartadas.has(a.id)).slice(0, 3);
   }
-  const [preguntaContextoIdx, setPreguntaContextoIdx] = useState(0);
   const [respuestasContexto, setRespuestasContexto] = useState<string[]>([]);
   const [itinerarioPersonalizado, setItinerarioPersonalizado] = useState<{titulo:string; descripcion:string; pasos:{fase:string;items:string[]}[]} | null>(null);
   const [cargandoItinerario, setCargandoItinerario] = useState(false);
@@ -393,12 +392,6 @@ function App() {
     setTabApp("chat");
   }
 
-  function responderContexto(opcion: string) {
-    const nuevas = [...respuestasContexto, opcion];
-    setRespuestasContexto(nuevas);
-    // Siempre ir a CCAA tras la primera (y única) pregunta
-    setMostrarCCAA(true);
-  }
 
   function elegirCCAA(ccaa: string) {
     setCcaaUsuario(ccaa);
