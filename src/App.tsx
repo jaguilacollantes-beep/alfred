@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 // ─── Datos ───────────────────────────────────────────────────────────────────
 
@@ -8,7 +8,6 @@ const itinerarios = [
     descripcion: "Tu hoja de ruta al llegar a la mayoría de edad",
     preguntas: [
       { texto: "¿Ya tienes DNI de adulto o el de menor?", opciones: ["Tengo el de adulto", "Tengo el de menor", "No lo sé"] },
-      { texto: "¿Estudias, trabajas o ninguna de las dos?", opciones: ["Estudio", "Trabajo", "Las dos", "Por ahora ninguna"] },
     ],
     pasos: [
       { fase: "Documentación obligatoria", items: ["Renueva el DNI de adulto — cita en interior.gob.es", "Saca el pasaporte si no tienes — 30€ y 10 años de vigencia", "Considera sacarte el carné de conducir (B)", "Crea tu cuenta en importass.gob.es"] },
@@ -22,7 +21,6 @@ const itinerarios = [
     descripcion: "Todo lo que necesitas al empezar tus estudios",
     preguntas: [
       { texto: "¿Te mudas de ciudad para estudiar?", opciones: ["Sí, me mudo", "No, sigo en casa", "No lo sé aún"] },
-      { texto: "¿Ya solicitaste la beca MEC?", opciones: ["Sí, ya la pedí", "No, no sé cómo", "No me corresponde"] },
     ],
     pasos: [
       { fase: "Antes de empezar", items: ["Matriculación oficial y pago de tasas", "Solicitar beca MEC en becas.educacion.gob.es", "Abrir cuenta bancaria sin comisiones", "Tramitar tarjeta de transporte joven"] },
@@ -35,7 +33,6 @@ const itinerarios = [
     descripcion: "Pasos esenciales para instalarte en tu nuevo hogar",
     preguntas: [
       { texto: "¿Ya tienes piso o estás buscando?", opciones: ["Ya tengo piso", "Todavía buscando", "No sé por dónde empezar"] },
-      { texto: "¿Sabes qué es el empadronamiento?", opciones: ["Sí, lo tengo claro", "No muy bien", "Para nada"] },
     ],
     pasos: [
       { fase: "Antes de mudarte", items: ["Buscar piso en Idealista o Fotocasa", "Revisar el contrato de alquiler", "Comprobar estado del piso con fotos", "Calcular gastos: alquiler + suministros + comunidad"] },
@@ -60,7 +57,6 @@ const itinerarios = [
     descripcion: "Tus derechos y pasos para alquilar con seguridad",
     preguntas: [
       { texto: "¿Ya encontraste el piso o estás buscando?", opciones: ["Ya lo encontré", "Todavía buscando", "Empezando a buscar"] },
-      { texto: "¿Conoces tus derechos como inquilino?", opciones: ["Sí, los conozco", "Algo, pero no todo", "No tengo ni idea"] },
     ],
     pasos: [
       { fase: "Antes de firmar", items: ["Pedir el certificado energético", "Verificar que el casero es el propietario", "Revisar cláusulas abusivas", "Calcular: fianza + agencia + primer mes"] },
@@ -85,7 +81,6 @@ const itinerarios = [
     descripcion: "Cómo encontrar trabajo y conocer tus derechos laborales",
     preguntas: [
       { texto: "¿Tienes ya el CV hecho?", opciones: ["Sí, está listo", "Tengo algo pero mejorable", "No, empezando desde cero"] },
-      { texto: "¿Sabes cuál es el SMI en 2026?", opciones: ["Sí, 1.221€/mes", "No lo sé", "Tengo dudas"] },
     ],
     pasos: [
       { fase: "Antes de empezar", items: ["Crea tu CV actualizado y perfil en LinkedIn", "Regístrate como demandante de empleo en sepe.es", "Obtén tu número de afiliación a la Seguridad Social", "Investiga empresas y sectores que te interesan"] },
@@ -341,6 +336,9 @@ function App() {
   const [temaActivo, setTemaActivo] = useState<string | null>(null);
   const [ccaaUsuario, setCcaaUsuario] = useState<string>("");
   const [mostrarCCAA, setMostrarCCAA] = useState(false);
+  const [mostrarOtrosItinerarios, setMostrarOtrosItinerarios] = useState(false);
+  const [mostrarSOS, setMostrarSOS] = useState(false);
+  const [situacionSOS, setSituacionSOS] = useState<string>("");
 
   // Chat
   const [pregunta, setPregunta] = useState("");
@@ -488,8 +486,9 @@ function App() {
       return id;
     })();
 
-    const esBonoCultural = situacionElegida?.toLowerCase().includes("18") || situacionElegida?.toLowerCase().includes("bono");
-    const contextoUsuario = `[Situación: ${situacionElegida}. CCAA: ${ccaaUsuario || "no especificada"}. Respuestas onboarding: ${respuestasContexto.join(", ")}. Itinerario activo: ${itinerarios[itinerarioActivo]?.titulo}${esBonoCultural ? ". IMPORTANTE: El Bono Cultural Joven 2026 es EXCLUSIVO para nacidos en 2008 (18 años en 2026). NO es para 18-25 años. URL: bonoculturajoven.gob.es" : ""}. REGLA: Usa siempre fuentes oficiales del RAG. Si no hay documentos relevantes indicalo con advertencia antes de responder.]`;
+    const preguntaSobre = pregunta.toLowerCase();
+    const esBonoCultural = situacionElegida?.toLowerCase().includes("18") || situacionElegida?.toLowerCase().includes("bono") || preguntaSobre.includes("bono") || preguntaSobre.includes("cultural") || preguntaSobre.includes("400");
+    const contextoUsuario = `[Situación: ${situacionElegida}. CCAA: ${ccaaUsuario || "no especificada"}. Respuestas onboarding: ${respuestasContexto.join(", ")}. Itinerario activo: ${itinerarios[itinerarioActivo]?.titulo}${esBonoCultural ? ". CRITICO: El Bono Cultural Joven 2026 es EXCLUSIVO para personas nacidas en 2008 que cumplen exactamente 18 años en 2026. JAMAS digas que es para 18-25 años. URL correcta: bonoculturajoven.gob.es. Plazo: 22 junio al 31 octubre 2026." : ""}. REGLA: Usa siempre fuentes oficiales del RAG. Si no hay documentos relevantes indicalo con advertencia antes de responder.]`;
 
     try {
       const controller = new AbortController();
@@ -711,46 +710,65 @@ function App() {
   // ── PANTALLA 2: Preguntas de contexto ──────────────────────────────────────
   if (pantalla === "preguntas" && !mostrarCCAA) {
     const it = itinerarios[itinerarioActivo];
-    const pregObj = it.preguntas[preguntaContextoIdx];
+    const pregObj = it.preguntas[0];
+    const ccaas = ["Madrid","Catalunya","Andalucía","Comunitat Valenciana","País Vasco","Galicia","Castilla y León","Canarias","Castilla-La Mancha","Murcia","Aragón","Extremadura","Asturias","Navarra","Cantabria","La Rioja","Baleares","Ceuta","Melilla"];
+    const [respLocal, setRespLocal] = React.useState<string>("");
+    const [ccaaLocal, setCcaaLocal] = React.useState<string>("");
+
+    const puedeAvanzar = respLocal !== "" && ccaaLocal !== "";
+
+    function avanzar() {
+      if (!puedeAvanzar) return;
+      setRespuestasContexto([respLocal]);
+      setCcaaUsuario(ccaaLocal);
+      setPantalla("app");
+      setTabApp("itinerario");
+      generarItinerarioPersonalizado(situacionElegida, [respLocal, `CCAA: ${ccaaLocal}`], it?.titulo || '');
+    }
 
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff", padding: 20 }}>
         <style>{`
           @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-          .ctx-btn { background:#fff; border:2px solid #eee; border-radius:14px; padding:13px 18px; font-size:14px; font-weight:600; cursor:pointer; color:#2D3436; text-align:left; transition:all 0.15s; width:100%; }
+          .ctx-btn { background:#fff; border:2px solid #eee; border-radius:14px; padding:12px 16px; font-size:14px; font-weight:500; cursor:pointer; color:#2D3436; text-align:left; transition:all 0.15s; width:100%; }
           .ctx-btn:hover { border-color:#FF6B6B; background:#FFF5F5; }
+          .ctx-btn.selected { border-color:#FF6B6B; background:#FFF5F5; color:#FF6B6B; font-weight:600; }
         `}</style>
         <div style={{ maxWidth: 440, width: "100%", animation: "fadeUp 0.3s ease" }}>
-          {/* Progreso */}
-          <div style={{ marginBottom: 28 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#aaa", marginBottom: 8 }}>
-              <span>Paso 1 de 2</span>
-              <span>50% completado</span>
-            </div>
-            <div style={{ background: "#f0f0f0", borderRadius: 8, height: 5 }}>
-              <div style={{ background: it.color, borderRadius: 8, height: 5, width: "50%", transition: "width 0.3s" }} />
-            </div>
+          {/* Emoji */}
+          <div style={{ textAlign: "center", marginBottom: 20 }}>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: `${it.color}22`, margin: "0 auto 10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32 }}>{it.icono}</div>
           </div>
 
-          {/* Emoji + burbuja */}
-          <div style={{ textAlign: "center", marginBottom: 24 }}>
-            <div style={{ width: 72, height: 72, borderRadius: "50%", background: `${it.color}22`, margin: "0 auto 14px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36 }}>{it.icono}</div>
+          {/* Pregunta 1 */}
+          <div style={{ fontSize: 10, color: "#FF6B6B", fontWeight: "600", marginBottom: 5 }}>🤖 ALFRED · Asistente IA</div>
+          <div style={{ background: "#FFF5F5", borderRadius: "4px 20px 20px 20px", padding: "14px 18px", fontSize: 15, fontWeight: "700", color: "#2D3436", lineHeight: 1.4, marginBottom: 14 }}>
+            {pregObj.texto}
           </div>
-
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 10, color: "#FF6B6B", fontWeight: "600", marginBottom: 6 }}>🤖 ALFRED · Asistente IA</div>
-            <div style={{ background: "#FFF5F5", borderRadius: "4px 20px 20px 20px", padding: "14px 18px", fontSize: 15, fontWeight: "700", color: "#2D3436", lineHeight: 1.4 }}>
-              {pregObj.texto}
-            </div>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
             {pregObj.opciones.map(op => (
-              <button key={op} className="ctx-btn" onClick={() => responderContexto(op)}>
-                {op} <span style={{ float: "right", color: "#aaa" }}>→</span>
+              <button key={op} className={`ctx-btn${respLocal === op ? " selected" : ""}`} onClick={() => setRespLocal(op)}>
+                {op} {respLocal === op && <span style={{ float: "right" }}>✓</span>}
               </button>
             ))}
           </div>
+
+          {/* Pregunta 2 — CCAA */}
+          <div style={{ background: "#F8F8F8", borderRadius: "4px 20px 20px 20px", padding: "14px 18px", fontSize: 15, fontWeight: "700", color: "#2D3436", lineHeight: 1.4, marginBottom: 14 }}>
+            ¿En qué comunidad autónoma vives?
+            <div style={{ fontSize: 12, fontWeight: "400", color: "#888", marginTop: 4 }}>Para darte información local sobre ayudas y trámites.</div>
+          </div>
+          <select value={ccaaLocal} onChange={e => setCcaaLocal(e.target.value)}
+            style={{ width: "100%", padding: "13px 16px", borderRadius: 14, border: `2px solid ${ccaaLocal ? "#FF6B6B" : "#eee"}`, fontSize: 15, color: ccaaLocal ? "#2D3436" : "#aaa", background: "#fff", cursor: "pointer", marginBottom: 24 }}>
+            <option value="" disabled>Selecciona tu comunidad autónoma</option>
+            {ccaas.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+
+          {/* Botón avanzar */}
+          <button onClick={avanzar} disabled={!puedeAvanzar}
+            style={{ width: "100%", padding: "15px", borderRadius: 16, background: puedeAvanzar ? "#FF6B6B" : "#eee", color: puedeAvanzar ? "#fff" : "#aaa", border: "none", fontSize: 16, fontWeight: "700", cursor: puedeAvanzar ? "pointer" : "default", marginBottom: 12, transition: "all 0.2s" }}>
+            Empezar mi itinerario →
+          </button>
 
           <button onClick={() => { setPantalla("app"); setTabApp("itinerario"); }} style={{ background: "none", border: "none", color: "#aaa", fontSize: 12, cursor: "pointer", width: "100%", textAlign: "center" }}>
             Saltar y ver el itinerario directamente
@@ -774,6 +792,14 @@ function App() {
         @keyframes pulse { 0%,80%,100%{opacity:0.2;transform:scale(0.8);}40%{opacity:1;transform:scale(1.2);} }
         @keyframes fadeIn { from{opacity:0.2;transform:translateX(-4px);}to{opacity:1;transform:translateX(0);} }
         @keyframes slideUp { from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);} }
+        @keyframes checkPop { 0%{transform:scale(1)} 40%{transform:scale(1.4)} 70%{transform:scale(0.88)} 100%{transform:scale(1)} }
+        @keyframes xpFloat { 0%{opacity:0;transform:translateY(0) scale(0.6)} 40%{opacity:1;transform:translateY(-16px) scale(1.1)} 100%{opacity:0;transform:translateY(-32px) scale(0.8)} }
+        @keyframes ripple { from{transform:scale(0);opacity:0.5} to{transform:scale(4);opacity:0} }
+        @keyframes slideOut { from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(60px)} }
+        @keyframes hintIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+        .check-bounce { animation: checkPop 0.35s cubic-bezier(.36,.07,.19,.97); }
+        .card-removing { animation: slideOut 0.28s ease forwards; }
+        .ripple-el { position:absolute; border-radius:50%; background:rgba(255,255,255,0.45); width:40px; height:40px; pointer-events:none; animation:ripple 0.55s ease-out forwards; }
         .alfred-link{color:#FF6B6B;font-weight:500;text-decoration:none;border-bottom:1px solid #FF6B6B44;padding-bottom:1px;}
         .alfred-link:hover{border-bottom-color:#FF6B6B;background:#FFF5F5;border-radius:3px;}
         @media(max-width:768px){
@@ -803,23 +829,97 @@ function App() {
           <div style={{ background: "#F5F0FF", color: "#7F77DD", borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: "600" }}>
             ⚡ {Object.values(itinerarioProgreso).filter(Boolean).length * 10} XP
           </div>
+          <button onClick={() => setMostrarSOS(true)}
+            style={{ background: "#FFF0F0", color: "#FF6B6B", borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: "600", border: "1px solid #FF6B6B44", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+            ⚡ Ayuda urgente
+          </button>
           <div style={{ background: "#FF6B6B", color: "#fff", borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: "500" }}>
             IA · Beta
           </div>
         </div>
       </div>
 
-      {/* TABS — con colores por tab */}
+      {/* MODAL SOS — Tengo un problema ahora */}
+      {mostrarSOS && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 20 }}
+          onClick={e => { if (e.target === e.currentTarget) setMostrarSOS(false); }}>
+          <div style={{ background: "#fff", borderRadius: "24px 24px 16px 16px", padding: "24px 20px 32px", width: "100%", maxWidth: 480, animation: "slideUp 0.25s ease" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: "700", color: "#1a1a1a" }}>Necesito ayuda ahora</div>
+                <div style={{ fontSize: 13, color: "#888", marginTop: 2 }}>Te doy los pasos inmediatos sin rodeos</div>
+              </div>
+              <button onClick={() => setMostrarSOS(false)} style={{ background: "#f5f5f5", border: "none", borderRadius: "50%", width: 32, height: 32, cursor: "pointer", fontSize: 16, color: "#666" }}>✕</button>
+            </div>
+
+            {/* Situaciones urgentes */}
+            {!situacionSOS ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {[
+                  { emoji: "🏠", texto: "Me están echando del piso o tengo lío con el casero", pregunta: "Tengo un problema urgente con mi alquiler o casero. ¿Cuáles son mis derechos y qué hago ahora mismo?" },
+                  { emoji: "💼", texto: "Me han despedido hoy", pregunta: "Me acaban de despedir. ¿Qué hago en las próximas horas? Explícame paso a paso cómo pedir el paro y qué documentos necesito." },
+                  { emoji: "💰", texto: "No me pagan o tengo un problema económico urgente", pregunta: "Mi empresa no me ha pagado. ¿Qué hago ahora? Dame los pasos concretos y a dónde me dirijo." },
+                  { emoji: "🏥", texto: "Necesito atención médica ahora", pregunta: "Necesito atención médica. ¿A dónde voy según la gravedad? Dame los teléfonos y pasos inmediatos." },
+                  { emoji: "📋", texto: "Tengo un trámite urgente que no sé cómo hacer", pregunta: "Tengo que hacer un trámite urgente hoy. ¿Qué opciones tengo y cómo lo gestiono rápido?" },
+                  { emoji: "💬", texto: "Tengo otra situación y no sé qué hacer", pregunta: "" },
+                ].map(s => (
+                  <button key={s.texto} onClick={() => {
+                    if (s.pregunta) {
+                      setMostrarSOS(false);
+                      setSituacionSOS("");
+                      preguntaRapida(s.pregunta);
+                    } else {
+                      setSituacionSOS("libre");
+                    }
+                  }}
+                    style={{ background: "#FAFAFA", border: "0.5px solid #eee", borderRadius: 14, padding: "12px 16px", fontSize: 13, fontWeight: "500", color: "#1a1a1a", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: 10, transition: "all 0.15s" }}
+                    onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.background = "#FFF0F0"; (e.currentTarget as HTMLButtonElement).style.borderColor = "#FF6B6B44"; }}
+                    onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.background = "#FAFAFA"; (e.currentTarget as HTMLButtonElement).style.borderColor = "#eee"; }}>
+                    <span style={{ fontSize: 20 }}>{s.emoji}</span>
+                    <span>{s.texto}</span>
+                    <span style={{ marginLeft: "auto", color: "#aaa" }}>→</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div>
+                <div style={{ fontSize: 13, color: "#888", marginBottom: 10 }}>Describe tu situación urgente:</div>
+                <textarea
+                  placeholder="Ej: Me han notificado un desahucio para la semana que viene..."
+                  rows={3}
+                  style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: "1.5px solid #eee", fontSize: 14, resize: "none", outline: "none", marginBottom: 10, fontFamily: "Inter, sans-serif" }}
+                  onFocus={e => e.target.style.border = "1.5px solid #FF6B6B"}
+                  onBlur={e => e.target.style.border = "1.5px solid #eee"}
+                  onChange={e => setSituacionSOS(e.target.value)}
+                />
+                <button onClick={() => {
+                  if (situacionSOS && situacionSOS !== "libre") {
+                    setMostrarSOS(false);
+                    preguntaRapida(`Situación urgente: ${situacionSOS}. Dame los pasos inmediatos a seguir y los recursos oficiales disponibles.`);
+                    setSituacionSOS("");
+                  }
+                }}
+                  style={{ width: "100%", padding: "13px", borderRadius: 14, background: "#FF6B6B", color: "#fff", border: "none", fontSize: 15, fontWeight: "700", cursor: "pointer" }}>
+                  Pedir ayuda →
+                </button>
+                <button onClick={() => setSituacionSOS("")} style={{ background: "none", border: "none", color: "#aaa", fontSize: 12, cursor: "pointer", width: "100%", textAlign: "center", marginTop: 8 }}>← Volver</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* TABS — colores siempre visibles */}
       <div className="tabs-bar" style={{ padding: "8px 16px", flexShrink: 0, background: "#fff", borderBottom: "0.5px solid #eee" }}>
-        <div style={{ display: "flex", background: "#F5F5F5", borderRadius: 12, padding: 3, gap: 2 }}>
+        <div style={{ display: "flex", gap: 6 }}>
           {([
-            { id: "itinerario", label: "Mi viaje", icon: "ti-map", activeColor: "#FF6B6B", activeBg: "#FFF0F0" },
-            { id: "chat", label: "Chat", icon: "ti-message", activeColor: "#7F77DD", activeBg: "#F0EFFE" },
-            { id: "temas", label: "Temas", icon: "ti-layout-grid", activeColor: "#00B894", activeBg: "#EDFAF6" },
-          ] as { id: TabApp; label: string; icon: string; activeColor: string; activeBg: string }[]).map(tab => (
+            { id: "itinerario", label: "Mi viaje", icon: "ti-map", color: "#FF6B6B", bg: "#FFF0F0" },
+            { id: "chat", label: "Chat", icon: "ti-message", color: "#7F77DD", bg: "#F0EFFE" },
+            { id: "temas", label: "Temas", icon: "ti-layout-grid", color: "#00B894", bg: "#EDFAF6" },
+          ] as { id: TabApp; label: string; icon: string; color: string; bg: string }[]).map(tab => (
             <button key={tab.id} onClick={() => setTabApp(tab.id)}
-              style={{ flex: 1, padding: "7px 8px", fontSize: 11, fontWeight: tabApp === tab.id ? "600" : "400", color: tabApp === tab.id ? tab.activeColor : "#999", background: tabApp === tab.id ? tab.activeBg : "none", border: tabApp === tab.id ? `0.5px solid ${tab.activeColor}33` : "none", borderRadius: 10, cursor: "pointer", transition: "all 0.15s", display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-              <i className={`ti ${tab.icon}`} style={{ fontSize: 15 }} aria-hidden="true" />
+              style={{ flex: 1, padding: "8px 8px", fontSize: 11, fontWeight: tabApp === tab.id ? "700" : "500", color: tab.color, background: tab.bg, border: tabApp === tab.id ? `1.5px solid ${tab.color}` : `1px solid ${tab.color}33`, borderRadius: 12, cursor: "pointer", transition: "all 0.15s", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, opacity: tabApp === tab.id ? 1 : 0.6 }}>
+              <i className={`ti ${tab.icon}`} style={{ fontSize: 16 }} aria-hidden="true" />
               {tab.label}
             </button>
           ))}
@@ -956,18 +1056,37 @@ function App() {
               </div>
             )}
 
-            {/* Selector de itinerario — 2 filas wrap */}
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 12, color: "#888", marginBottom: 10, fontWeight: "500" }}>Otros itinerarios</div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {itinerarios.map((it2, i) => (
-                  <button key={i} onClick={() => setItinerarioActivo(i)}
-                    style={{ background: itinerarioActivo === i ? it2.color : "#f5f5f5", color: itinerarioActivo === i ? (it2.color === "#FFE66D" ? "#2D3436" : "#fff") : "#636e72", border: itinerarioActivo === i ? "none" : "0.5px solid #eee", borderRadius: 20, padding: "7px 14px", fontSize: 12, cursor: "pointer", fontWeight: itinerarioActivo === i ? "600" : "400", transition: "all 0.15s", whiteSpace: "nowrap" }}>
-                    {it2.icono} {it2.titulo.split(" ").slice(0, 3).join(" ")}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Selector de itinerario — principales + Otros */}
+            {(() => {
+              const principales = [1, 2, 4, 5, 6, 8, 9]; // índices visibles por defecto
+              const ocultos = [0, 3, 7]; // 18años, BonoCultural, Médica
+              return (
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+                    {principales.map(i => (
+                      <button key={i} onClick={() => setItinerarioActivo(i)}
+                        style={{ background: itinerarioActivo === i ? itinerarios[i].color : "#f5f5f5", color: itinerarioActivo === i ? (itinerarios[i].color === "#FFE66D" ? "#2D3436" : "#fff") : "#636e72", border: itinerarioActivo === i ? "none" : "0.5px solid #eee", borderRadius: 20, padding: "7px 14px", fontSize: 12, cursor: "pointer", fontWeight: itinerarioActivo === i ? "600" : "400", transition: "all 0.15s", whiteSpace: "nowrap" }}>
+                        {itinerarios[i].icono} {itinerarios[i].titulo.split(" ").slice(0, 3).join(" ")}
+                      </button>
+                    ))}
+                    <button onClick={() => setMostrarOtrosItinerarios(!mostrarOtrosItinerarios)}
+                      style={{ background: mostrarOtrosItinerarios ? "#1a1a1a" : "#f5f5f5", color: mostrarOtrosItinerarios ? "#fff" : "#636e72", border: "0.5px solid #eee", borderRadius: 20, padding: "7px 14px", fontSize: 12, cursor: "pointer", fontWeight: "500", transition: "all 0.15s", whiteSpace: "nowrap" }}>
+                      {mostrarOtrosItinerarios ? "▲ Menos" : "📋 Otros itinerarios"}
+                    </button>
+                  </div>
+                  {mostrarOtrosItinerarios && (
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", padding: "10px 14px", background: "#FAFAFA", borderRadius: 12, border: "0.5px solid #eee", animation: "fadeIn 0.2s ease" }}>
+                      {ocultos.map(i => (
+                        <button key={i} onClick={() => { setItinerarioActivo(i); setMostrarOtrosItinerarios(false); }}
+                          style={{ background: itinerarioActivo === i ? itinerarios[i].color : "#fff", color: itinerarioActivo === i ? "#fff" : "#636e72", border: "0.5px solid #eee", borderRadius: 20, padding: "7px 14px", fontSize: 12, cursor: "pointer", fontWeight: itinerarioActivo === i ? "600" : "400", transition: "all 0.15s", whiteSpace: "nowrap" }}>
+                          {itinerarios[i].icono} {itinerarios[i].titulo.split(" ").slice(0, 3).join(" ")}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Header itinerario activo */}
             <div style={{ background: "#fff", borderRadius: 16, padding: "20px 24px", border: "0.5px solid #eee", marginBottom: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
@@ -979,8 +1098,14 @@ function App() {
                     <div style={{ fontSize: 13, color: "#888" }}>{it.descripcion}</div>
                   </div>
                 </div>
-                <button onClick={() => { preguntaRapida(`Tengo dudas sobre: ${it.titulo}. ¿Puedes ayudarme con más detalle?`); }}
-                  style={{ background: it.color, color: it.color === "#FFE66D" ? "#2D3436" : "#fff", border: "none", borderRadius: 20, padding: "10px 18px", fontSize: 13, fontWeight: "700", cursor: "pointer" }}>
+                <button onClick={(e) => {
+                    preguntaRapida(`Tengo dudas sobre: ${it.titulo}. ¿Puedes ayudarme con más detalle?`);
+                    const btn = e.currentTarget as HTMLButtonElement;
+                    const r = document.createElement('div'); r.className = 'ripple-el';
+                    r.style.left = '50%'; r.style.top = '50%'; r.style.marginLeft = '-20px'; r.style.marginTop = '-20px';
+                    btn.appendChild(r); setTimeout(() => r.remove(), 600);
+                  }}
+                  style={{ background: it.color, color: it.color === "#FFE66D" ? "#2D3436" : "#fff", border: "none", borderRadius: 20, padding: "10px 18px", fontSize: 13, fontWeight: "700", cursor: "pointer", position: "relative", overflow: "hidden" }}>
                   💬 Preguntarle a ALFRED →
                 </button>
               </div>
@@ -1038,11 +1163,23 @@ https://alfred-isdi.netlify.app`)}`}
                       const isUltimo = ultimoMarcado?.key === key && checked;
                       return (
                         <div key={ii} style={{ marginBottom: 10 }}>
-                          <div onClick={() => actualizarProgreso(key, !checked, item, fi, ii)} style={{ display: "flex", gap: 10, cursor: "pointer", alignItems: "flex-start" }}>
-                            <div style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, marginTop: 1, border: checked ? "none" : "2px solid #ddd", background: checked ? it.color : "transparent", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>
+                          <div onClick={(e) => {
+                              actualizarProgreso(key, !checked, item, fi, ii);
+                              if (!checked) {
+                                const circle = (e.currentTarget as HTMLElement).querySelector('.check-circle') as HTMLElement;
+                                if (circle) { circle.classList.remove('check-bounce'); void circle.offsetWidth; circle.classList.add('check-bounce'); }
+                                const xp = document.createElement('div');
+                                xp.style.cssText = 'position:absolute;right:8px;top:0;font-size:11px;font-weight:700;color:#7F77DD;pointer-events:none;animation:xpFloat 0.85s ease forwards;z-index:10';
+                                xp.textContent = '+10 XP';
+                                (e.currentTarget as HTMLElement).closest('div')?.appendChild(xp);
+                                setTimeout(() => xp.remove(), 900);
+                              }
+                            }}
+                            style={{ display: "flex", gap: 10, cursor: "pointer", alignItems: "flex-start", position: "relative" }}>
+                            <div className="check-circle" style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, marginTop: 1, border: checked ? "none" : "2px solid #ddd", background: checked ? it.color : "transparent", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s, border 0.2s" }}>
                               {checked && <span style={{ color: it.color === "#FFE66D" ? "#2D3436" : "#fff", fontSize: 11, fontWeight: "700" }}>✓</span>}
                             </div>
-                            <span style={{ fontSize: 13, color: checked ? "#aaa" : "#636e72", lineHeight: 1.4, textDecoration: checked ? "line-through" : "none", transition: "all 0.2s" }}>{item}</span>
+                            <span style={{ fontSize: 13, color: checked ? "#aaa" : "#636e72", lineHeight: 1.4, textDecoration: checked ? "line-through" : "none", transition: "all 0.25s" }}>{item}</span>
                           </div>
                           {/* Siguiente paso hint */}
                           {isUltimo && ultimoMarcado?.siguienteItem && !ultimoMarcado.faseCompleta && (
