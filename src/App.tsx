@@ -1139,14 +1139,12 @@ https://alfred-isdi.netlify.app`)}`}
                 const faseDone = fase.items.filter((_, ii) => itinerarioProgreso[`${itinerarioActivo}-${fi}-${ii}`]).length;
                 const faseComplete = faseDone === fase.items.length;
                 const isOpen = faseAbierta === fi;
+                const isLight = it.color === "#FFE66D" || it.color === "#FFF9C4" || it.color === "#FFEAA7";
+                const headerBg = isOpen ? `${it.color}22` : it.color;
+                const headerTextColor = isOpen ? (isLight ? "#7a6200" : it.color) : (isLight ? "#5c4800" : "#fff");
+                const numBg = isOpen ? it.color : (isLight ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.25)");
+                const numColor = isOpen ? (isLight ? "#5c4800" : "#fff") : (isLight ? "#5c4800" : "#fff");
                 return (
-                  {(() => {
-                    const isLight = it.color === "#FFE66D" || it.color === "#FFF9C4" || it.color === "#FFEAA7";
-                    const headerBg = isOpen ? `${it.color}22` : it.color;
-                    const headerTextColor = isOpen ? (isLight ? "#7a6200" : it.color) : (isLight ? "#5c4800" : "#fff");
-                    const numBg = isOpen ? it.color : (isLight ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.25)");
-                    const numColor = isOpen ? (isLight ? "#5c4800" : "#fff") : (isLight ? "#5c4800" : "#fff");
-                    return (
                   <div key={fi} style={{ background: "#fff", borderRadius: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", border: faseComplete ? `2px solid ${it.color}` : "none", overflow: "hidden" }}>
                     {/* Header fase — color sólido cerrado, claro abierto */}
                     <div onClick={() => setFaseAbierta(isOpen ? -1 : fi)}
@@ -1158,7 +1156,7 @@ https://alfred-isdi.netlify.app`)}`}
                       <div style={{ fontSize: 11, color: isOpen ? headerTextColor : (isLight ? "#5c4800" : "rgba(255,255,255,0.75)"), marginRight: 4, opacity: 0.8 }}>{faseDone}/{fase.items.length}</div>
                       <span style={{ fontSize: 11, color: isOpen ? headerTextColor : (isLight ? "#5c4800" : "rgba(255,255,255,0.75)"), transition: "transform 0.2s", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", display: "inline-block", opacity: 0.8 }}>▼</span>
                     </div>
-                    {/* Items — solo visibles si fase abierta, fondo muy claro del color */}
+                    {/* Items — solo visibles si fase abierta */}
                     {isOpen && <div style={{ padding: "14px 18px 16px", background: `${it.color}10` }}>
                     {fase.items.map((item, ii) => {
                       const key = `${itinerarioActivo}-${fi}-${ii}`;
@@ -1199,8 +1197,6 @@ https://alfred-isdi.netlify.app`)}`}
                     })}
                     </div>}
                   </div>
-                    );
-                  })()}
                 );
               })}
             </div>
