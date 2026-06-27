@@ -398,13 +398,8 @@ function App() {
   function responderContexto(opcion: string) {
     const nuevas = [...respuestasContexto, opcion];
     setRespuestasContexto(nuevas);
-    const it = itinerarios[itinerarioActivo];
-    if (preguntaContextoIdx < it.preguntas.length - 1) {
-      setPreguntaContextoIdx(preguntaContextoIdx + 1);
-    } else {
-      // Última pregunta de onboarding — mostrar selector CCAA
-      setMostrarCCAA(true);
-    }
+    // Siempre ir a CCAA tras la primera (y única) pregunta
+    setMostrarCCAA(true);
   }
 
   function elegirCCAA(ccaa: string) {
@@ -493,7 +488,8 @@ function App() {
       return id;
     })();
 
-    const contextoUsuario = `[Situación: ${situacionElegida}. CCAA: ${ccaaUsuario || "no especificada"}. Respuestas onboarding: ${respuestasContexto.join(", ")}. Itinerario activo: ${itinerarios[itinerarioActivo]?.titulo}]`;
+    const esBonoCultural = situacionElegida?.toLowerCase().includes("18") || situacionElegida?.toLowerCase().includes("bono");
+    const contextoUsuario = `[Situación: ${situacionElegida}. CCAA: ${ccaaUsuario || "no especificada"}. Respuestas onboarding: ${respuestasContexto.join(", ")}. Itinerario activo: ${itinerarios[itinerarioActivo]?.titulo}${esBonoCultural ? ". IMPORTANTE: El Bono Cultural Joven 2026 es EXCLUSIVO para nacidos en 2008 (18 años en 2026). NO es para 18-25 años. URL: bonoculturajoven.gob.es" : ""}. REGLA: Usa siempre fuentes oficiales del RAG. Si no hay documentos relevantes indicalo con advertencia antes de responder.]`;
 
     try {
       const controller = new AbortController();
@@ -505,8 +501,10 @@ function App() {
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
-      const respuesta = data.text || data.answer || JSON.stringify(data);
+      const respuesta = data.text || data.answer || data.output || (typeof data === 'string' ? data : null) || JSON.stringify(data);
+      if (!respuesta || respuesta === '{}' || respuesta === 'null') throw new Error('Respuesta vacía');
       setMensajes([...historialActualizado, { rol: "alfred", texto: respuesta }]);
       setRespuestaActual(respuesta);
       setFormRec({ titulo: "", fecha: "", descripcion: pregunta });
@@ -727,11 +725,11 @@ function App() {
           {/* Progreso */}
           <div style={{ marginBottom: 28 }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#aaa", marginBottom: 8 }}>
-              <span>Pregunta {preguntaContextoIdx + 1} de {it.preguntas.length}</span>
-              <span>{Math.round(progreso + (100 / it.preguntas.length))}% completado</span>
+              <span>Paso 1 de 2</span>
+              <span>50% completado</span>
             </div>
             <div style={{ background: "#f0f0f0", borderRadius: 8, height: 5 }}>
-              <div style={{ background: it.color, borderRadius: 8, height: 5, width: `${progreso + (100 / it.preguntas.length)}%`, transition: "width 0.3s" }} />
+              <div style={{ background: it.color, borderRadius: 8, height: 5, width: "50%", transition: "width 0.3s" }} />
             </div>
           </div>
 
@@ -812,16 +810,16 @@ function App() {
         </div>
       </div>
 
-      {/* TABS — con pastilla */}
+      {/* TABS — con colores por tab */}
       <div className="tabs-bar" style={{ padding: "8px 16px", flexShrink: 0, background: "#fff", borderBottom: "0.5px solid #eee" }}>
         <div style={{ display: "flex", background: "#F5F5F5", borderRadius: 12, padding: 3, gap: 2 }}>
           {([
-            { id: "itinerario", label: "Mi viaje", icon: "ti-map" },
-            { id: "chat", label: "Chat", icon: "ti-message" },
-            { id: "temas", label: "Temas", icon: "ti-layout-grid" },
-          ] as { id: TabApp; label: string; icon: string }[]).map(tab => (
+            { id: "itinerario", label: "Mi viaje", icon: "ti-map", activeColor: "#FF6B6B", activeBg: "#FFF0F0" },
+            { id: "chat", label: "Chat", icon: "ti-message", activeColor: "#7F77DD", activeBg: "#F0EFFE" },
+            { id: "temas", label: "Temas", icon: "ti-layout-grid", activeColor: "#00B894", activeBg: "#EDFAF6" },
+          ] as { id: TabApp; label: string; icon: string; activeColor: string; activeBg: string }[]).map(tab => (
             <button key={tab.id} onClick={() => setTabApp(tab.id)}
-              style={{ flex: 1, padding: "7px 8px", fontSize: 11, fontWeight: tabApp === tab.id ? "600" : "400", color: tabApp === tab.id ? "#1a1a1a" : "#999", background: tabApp === tab.id ? "#fff" : "none", border: tabApp === tab.id ? "0.5px solid #eee" : "none", borderRadius: 10, cursor: "pointer", transition: "all 0.15s", display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+              style={{ flex: 1, padding: "7px 8px", fontSize: 11, fontWeight: tabApp === tab.id ? "600" : "400", color: tabApp === tab.id ? tab.activeColor : "#999", background: tabApp === tab.id ? tab.activeBg : "none", border: tabApp === tab.id ? `0.5px solid ${tab.activeColor}33` : "none", borderRadius: 10, cursor: "pointer", transition: "all 0.15s", display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
               <i className={`ti ${tab.icon}`} style={{ fontSize: 15 }} aria-hidden="true" />
               {tab.label}
             </button>
@@ -959,13 +957,13 @@ function App() {
               </div>
             )}
 
-            {/* Selector de itinerario — horizontal scroll */}
+            {/* Selector de itinerario — 2 filas wrap */}
             <div style={{ marginBottom: 20 }}>
               <div style={{ fontSize: 12, color: "#888", marginBottom: 10, fontWeight: "500" }}>Otros itinerarios</div>
-              <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {itinerarios.map((it2, i) => (
                   <button key={i} onClick={() => setItinerarioActivo(i)}
-                    style={{ background: itinerarioActivo === i ? it2.color : "#f5f5f5", color: itinerarioActivo === i ? (it2.color === "#FFE66D" ? "#2D3436" : "#fff") : "#636e72", border: "none", borderRadius: 20, padding: "6px 14px", fontSize: 12, cursor: "pointer", fontWeight: itinerarioActivo === i ? "600" : "400", transition: "all 0.15s", whiteSpace: "nowrap", flexShrink: 0 }}>
+                    style={{ background: itinerarioActivo === i ? it2.color : "#f5f5f5", color: itinerarioActivo === i ? (it2.color === "#FFE66D" ? "#2D3436" : "#fff") : "#636e72", border: itinerarioActivo === i ? "none" : "0.5px solid #eee", borderRadius: 20, padding: "7px 14px", fontSize: 12, cursor: "pointer", fontWeight: itinerarioActivo === i ? "600" : "400", transition: "all 0.15s", whiteSpace: "nowrap" }}>
                     {it2.icono} {it2.titulo.split(" ").slice(0, 3).join(" ")}
                   </button>
                 ))}
