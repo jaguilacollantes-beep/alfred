@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+  import React, { useState, useRef, useEffect } from "react";
 
 // ─── Datos ───────────────────────────────────────────────────────────────────
 
@@ -338,6 +338,7 @@ function App() {
   const [respLocal, setRespLocal] = useState<string>("");
   const [ccaaLocal, setCcaaLocal] = useState<string>("");
   const [mostrarOtrosItinerarios, setMostrarOtrosItinerarios] = useState(false);
+  const [faseAbierta, setFaseAbierta] = useState<number>(0);
   const [mostrarSOS, setMostrarSOS] = useState(false);
   const [situacionSOS, setSituacionSOS] = useState<string>("");
 
@@ -821,8 +822,8 @@ function App() {
             ⚡ {Object.values(itinerarioProgreso).filter(Boolean).length * 10} XP
           </div>
           <button onClick={() => setMostrarSOS(true)}
-            style={{ background: "#FFF0F0", color: "#FF6B6B", borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: "600", border: "1px solid #FF6B6B44", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
-            ⚡ Ayuda urgente
+            style={{ background: "#FF6B6B", color: "#fff", borderRadius: "50%", width: 32, height: 32, fontSize: 18, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(255,107,107,0.4)", flexShrink: 0 }}>
+            🆘
           </button>
           <div style={{ background: "#FF6B6B", color: "#fff", borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: "500" }}>
             IA · Beta
@@ -1134,20 +1135,26 @@ https://alfred-isdi.netlify.app`)}`}
               )}
             </div>
 
-            {/* Fases */}
-            <div className="fases-grid" style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(it.pasos.length, 3)}, 1fr)`, gap: 16 }}>
+            {/* Fases colapsables */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {it.pasos.map((fase, fi) => {
                 const faseDone = fase.items.filter((_, ii) => itinerarioProgreso[`${itinerarioActivo}-${fi}-${ii}`]).length;
                 const faseComplete = faseDone === fase.items.length;
+                const isOpen = faseAbierta === fi;
                 return (
-                  <div key={fi} style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", border: faseComplete ? `2px solid ${it.color}55` : "2px solid transparent" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                  <div key={fi} style={{ background: "#fff", borderRadius: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", border: faseComplete ? `2px solid ${it.color}55` : isOpen ? `2px solid ${it.color}33` : "2px solid transparent", overflow: "hidden" }}>
+                    {/* Header fase — siempre visible, clickable */}
+                    <div onClick={() => setFaseAbierta(isOpen ? -1 : fi)}
+                      style={{ display: "flex", alignItems: "center", gap: 8, padding: "16px 20px", cursor: "pointer", userSelect: "none" }}>
                       <div style={{ width: 22, height: 22, borderRadius: "50%", flexShrink: 0, background: faseComplete ? it.color : `${it.color}22`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: "700", color: faseComplete ? "#fff" : it.color === "#FFE66D" ? "#b8860b" : it.color }}>
                         {faseComplete ? "✓" : fi + 1}
                       </div>
-                      <div style={{ fontWeight: "700", color: it.color === "#FFE66D" ? "#b8860b" : it.color, fontSize: 12, textTransform: "uppercase", letterSpacing: 0.5 }}>{fase.fase}</div>
-                      <div style={{ marginLeft: "auto", fontSize: 11, color: "#aaa" }}>{faseDone}/{fase.items.length}</div>
+                      <div style={{ fontWeight: "700", color: it.color === "#FFE66D" ? "#b8860b" : it.color, fontSize: 12, textTransform: "uppercase", letterSpacing: 0.5, flex: 1 }}>{fase.fase}</div>
+                      <div style={{ fontSize: 11, color: "#aaa", marginRight: 6 }}>{faseDone}/{fase.items.length}</div>
+                      <span style={{ fontSize: 12, color: "#aaa", transition: "transform 0.2s", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", display: "inline-block" }}>▼</span>
                     </div>
+                    {/* Items — solo visibles si fase abierta */}
+                    {isOpen && <div style={{ padding: "0 20px 16px" }}>
                     {fase.items.map((item, ii) => {
                       const key = `${itinerarioActivo}-${fi}-${ii}`;
                       const checked = !!itinerarioProgreso[key];
@@ -1185,6 +1192,7 @@ https://alfred-isdi.netlify.app`)}`}
                         </div>
                       );
                     })}
+                    </div>}
                   </div>
                 );
               })}
