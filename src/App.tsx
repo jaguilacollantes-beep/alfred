@@ -382,8 +382,8 @@ function App() {
   function elegirSituacion(label: string, itIdx: number) {
     setSituacionElegida(label);
     setItinerarioActivo(itIdx);
-    setPreguntaContextoIdx(0);
     setRespuestasContexto([]);
+    setMostrarCCAA(false);
     setPantalla("preguntas");
   }
 
