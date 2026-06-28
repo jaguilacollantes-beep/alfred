@@ -992,20 +992,23 @@ function App() {
                   {secundarias.length > 0 && (
                     <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(secundarias.length, 2)}, 1fr)`, gap: 10 }}>
                       {secundarias.map(ac => (
-                        <div key={ac.id} style={{ background: "#fff", borderRadius: 14, border: "0.5px solid #eee", padding: "14px", display: "flex", alignItems: "flex-start", gap: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+                        <div key={ac.id} style={{ background: `${ac.color}10`, borderRadius: 14, border: `1px solid ${ac.color}33`, padding: "14px", display: "flex", alignItems: "flex-start", gap: 8, position: "relative", overflow: "hidden" }}>
+                          <div style={{ position: "absolute", right: -4, bottom: -6, fontSize: 48, opacity: 0.07, pointerEvents: "none" }}>
+                            {ac.color === "#4ECDC4" ? "🎓" : ac.color === "#FFE66D" ? "📋" : ac.color === "#A29BFE" ? "🪪" : ac.color === "#74B9FF" ? "💼" : "🏥"}
+                          </div>
                           <div style={{ flex: 1 }}>
-                            <div style={{ width: 32, height: 32, borderRadius: 8, background: `${ac.color}22`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, marginBottom: 8 }}>
+                            <div style={{ width: 30, height: 30, borderRadius: 8, background: `${ac.color}33`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, marginBottom: 8 }}>
                               {ac.color === "#4ECDC4" ? "🎓" : ac.color === "#FFE66D" ? "📋" : ac.color === "#A29BFE" ? "🪪" : ac.color === "#74B9FF" ? "💼" : "🏥"}
                             </div>
                             <div style={{ fontSize: 13, fontWeight: "700", color: "#2D3436", marginBottom: 4, lineHeight: 1.3 }}>{ac.titulo}</div>
-                            <div style={{ fontSize: 12, color: "#888", marginBottom: 10, lineHeight: 1.4 }}>{ac.desc}</div>
+                            <div style={{ fontSize: 12, color: "#636e72", marginBottom: 10, lineHeight: 1.4 }}>{ac.desc}</div>
                             <button onClick={() => preguntaRapida(ac.titulo)}
-                              style={{ background: "none", border: "none", fontSize: 12, color: ac.color === "#FFE66D" ? "#854F0B" : ac.color, cursor: "pointer", fontWeight: "700", padding: 0 }}>
+                              style={{ background: `${ac.color}22`, border: "none", borderRadius: 10, fontSize: 12, color: ac.color === "#FFE66D" ? "#854F0B" : ac.color, cursor: "pointer", fontWeight: "700", padding: "5px 10px" }}>
                               Saber más →
                             </button>
                           </div>
                           <button onClick={() => descartarTarjeta(ac.id)}
-                            style={{ background: "none", border: "none", cursor: "pointer", color: "#ccc", fontSize: 16, lineHeight: 1, flexShrink: 0, padding: 0 }}>
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "#bbb", fontSize: 16, lineHeight: 1, flexShrink: 0, padding: 0 }}>
                             ×
                           </button>
                         </div>
