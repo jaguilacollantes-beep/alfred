@@ -332,6 +332,7 @@ function App() {
 
   const [ultimoMarcado, setUltimoMarcado] = useState<{key: string; item: string; siguienteItem: string | null; faseCompleta: boolean; tituloFase: string} | null>(null);
   const [celebracion, setCelebracion] = useState<string | null>(null);
+  const [xpToast, setXpToast] = useState<string | null>(null);
   const [temaActivo, setTemaActivo] = useState<string | null>(null);
   const [ccaaUsuario, setCcaaUsuario] = useState<string>("");
   const [mostrarCCAA, setMostrarCCAA] = useState(false);
@@ -585,22 +586,26 @@ function App() {
         `}</style>
 
         <div style={{ maxWidth: 440, width: "100%", animation: "fadeUp 0.5s ease" }}>
-          {/* Logo */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 32 }}>
-            <div style={{ fontSize: 30 }}>🤖</div>
-            <div style={{ fontSize: 22, fontWeight: "800", color: "#2D3436" }}>ALFRED</div>
-            <div style={{ marginLeft: "auto", background: "#FF6B6B22", color: "#FF6B6B", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: "700" }}>IA · Beta</div>
+          {/* Hero impactante */}
+          <div style={{ background: "#FF6B6B", borderRadius: 24, padding: "32px 24px 28px", marginBottom: 24, textAlign: "center" }}>
+            <div style={{ fontSize: 52, marginBottom: 10 }}>🗺️</div>
+            <div style={{ fontSize: 28, fontWeight: "800", color: "#fff", marginBottom: 6 }}>ALFRED</div>
+            <div style={{ fontSize: 14, color: "rgba(255,255,255,0.88)", fontStyle: "italic", marginBottom: 16 }}>
+              La vida adulta por fin tiene manual.
+            </div>
+            <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
+              <div style={{ background: "rgba(255,255,255,0.2)", color: "#fff", borderRadius: 12, padding: "4px 10px", fontSize: 10, fontWeight: "600" }}>Solo +18 años</div>
+              <div style={{ background: "rgba(255,255,255,0.2)", color: "#fff", borderRadius: 12, padding: "4px 10px", fontSize: 10, fontWeight: "600" }}>IA · Beta</div>
+              <div style={{ background: "rgba(255,255,255,0.2)", color: "#fff", borderRadius: 12, padding: "4px 10px", fontSize: 10, fontWeight: "600" }}>RGPD</div>
+            </div>
           </div>
 
-          {/* Burbuja ALFRED */}
+          {/* Pregunta ALFRED */}
           <div style={{ marginBottom: 20 }}>
             <div style={{ fontSize: 10, color: "#FF6B6B", fontWeight: "600", marginBottom: 6, letterSpacing: 0.3 }}>🤖 ALFRED · Asistente IA</div>
-            <div style={{ background: "#FFF5F5", borderRadius: "4px 20px 20px 20px", padding: "16px 18px" }}>
-              <div style={{ fontSize: 18, fontWeight: "800", color: "#2D3436", lineHeight: 1.3, marginBottom: 6 }}>
-                La vida adulta<br /><span style={{ color: "#FF6B6B" }}>por fin tiene manual.</span>
-              </div>
-              <div style={{ fontSize: 14, color: "#636e72", lineHeight: 1.5 }}>
-                Hola 👋 Soy ALFRED. Para ayudarte bien, <strong>¿qué está pasando en tu vida ahora mismo?</strong>
+            <div style={{ background: "#FFF5F5", borderRadius: "4px 20px 20px 20px", padding: "14px 18px" }}>
+              <div style={{ fontSize: 15, fontWeight: "700", color: "#2D3436", lineHeight: 1.4 }}>
+                ¿Qué está pasando en tu vida ahora mismo?
               </div>
             </div>
           </div>
@@ -828,6 +833,17 @@ function App() {
           </div>
         </div>
       </div>
+
+      {/* XP TOAST */}
+      {xpToast && (
+        <div style={{ position: "fixed", bottom: 90, left: "50%", transform: "translateX(-50%)", background: "#1a1a1a", color: "#fff", borderRadius: 16, padding: "12px 20px", display: "flex", alignItems: "center", gap: 12, zIndex: 999, boxShadow: "0 4px 20px rgba(0,0,0,0.2)", animation: "slideUp 0.3s ease", whiteSpace: "nowrap" }}>
+          <span style={{ fontSize: 24 }}>🏆</span>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: "700" }}>{xpToast.split(" · ")[0]} conseguidos</div>
+            <div style={{ fontSize: 11, color: "#aaa" }}>{xpToast.split(" · ")[1]}</div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL SOS — Tengo un problema ahora */}
       {mostrarSOS && (
@@ -1248,9 +1264,21 @@ https://alfred-isdi.netlify.app`)}`}
             {/* Área conversación */}
             <div style={{ flex: 1, background: "#fff", borderRadius: 20, padding: 16, boxShadow: "0 4px 20px rgba(0,0,0,0.07)", marginBottom: 14, minHeight: 200 }}>
               {intercambios.length === 0 && !respuestaActual && !cargando && (
-                <div style={{ textAlign: "center", color: "#aaa", padding: "32px 16px" }}>
-                  <div style={{ fontSize: 40, marginBottom: 10 }}>💬</div>
-                  <div style={{ fontSize: 14, color: "#636e72" }}>¡Hola! Escribe tu pregunta o elige una opción rápida arriba.</div>
+                <div style={{ padding: "16px 4px" }}>
+                  <div style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: 12 }}>
+                    <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#FF6B6B", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#fff" }} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: "600", color: "#1a1a1a", marginBottom: 4 }}>ALFRED <span style={{ color: "#bbb", fontWeight: "400" }}>· Asistente IA</span></div>
+                      <div style={{ background: "#FFF5F5", borderRadius: "4px 16px 16px 16px", padding: "12px 16px", fontSize: 13, color: "#2D3436", lineHeight: 1.5, maxWidth: 280 }}>
+                        ¡Hola! Soy ALFRED 👋 Estoy aquí para ayudarte con trámites, vivienda, trabajo, educación y mucho más. ¿Qué necesitas hoy?
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "center", fontSize: 11, color: "#bbb", marginTop: 8 }}>
+                    Elige una pregunta rápida o escribe la tuya
+                  </div>
                 </div>
               )}
 
