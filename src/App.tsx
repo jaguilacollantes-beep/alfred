@@ -420,6 +420,16 @@ function App() {
           setCelebracion(fase.fase);
           setTimeout(() => setCelebracion(null), 3500);
         }
+
+        // XP Toast en hitos
+        const totalXp = Object.values(next).filter(Boolean).length * 10;
+        const prevXp = Object.values(prev).filter(Boolean).length * 10;
+        const hitos: Record<number, string> = { 50: "Ya dominas los trámites básicos", 100: "Eres un experto en vida adulta", 150: "Nivel avanzado conseguido", 200: "ALFRED Master desbloqueado" };
+        const hito = [50, 100, 150, 200].find(h => prevXp < h && totalXp >= h);
+        if (hito) {
+          setXpToast(`${hito} · ${hitos[hito]}`);
+          setTimeout(() => setXpToast(null), 3500);
+        }
       } else {
         setUltimoMarcado(null);
       }
