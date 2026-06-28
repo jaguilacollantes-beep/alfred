@@ -1412,7 +1412,15 @@ https://alfred-isdi.netlify.app`)}`}
                 { icono: "🏥", titulo: "Trámites sanitarios", desc: "Tarjeta sanitaria, médico, salud mental", q: "¿Cómo accedo al sistema sanitario público?" },
                 { icono: "🚗", titulo: "Carné", desc: "Permiso B, DGT, autoescuela", q: "¿Cuáles son los pasos para sacarme el carné?" },
               ].map(t => (
-                <div key={t.titulo} onClick={() => { setTemaActivo(t.titulo); preguntaRapida(t.q); }}
+                <div key={t.titulo} onClick={() => {
+                      // Colapsar respuesta actual antes de cambiar tema
+                      if (respuestaActual && preguntaActual) {
+                        setIntercambios(prev => [...prev, { pregunta: preguntaActual, respuesta: respuestaActual }]);
+                        setRespuestaActual(null);
+                      }
+                      setTemaActivo(t.titulo);
+                      setTabApp("chat");
+                    }}
                   style={{ background: temaActivo === t.titulo ? "#FFF5F5" : "#fff", borderRadius: 18, padding: "18px 16px", boxShadow: "0 3px 12px rgba(0,0,0,0.07)", cursor: "pointer", borderTop: `3px solid ${temaActivo === t.titulo ? "#FF6B6B" : "#FF6B6B22"}`, transition: "all 0.15s", border: temaActivo === t.titulo ? "1.5px solid #FF6B6B33" : "1.5px solid transparent" }}
                   onMouseOver={e => (e.currentTarget.style.boxShadow = "0 6px 20px rgba(255,107,107,0.15)")}
                   onMouseOut={e => (e.currentTarget.style.boxShadow = "0 3px 12px rgba(0,0,0,0.07)")}>
