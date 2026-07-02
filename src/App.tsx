@@ -186,7 +186,6 @@ function ReminderModal({
   onGoToStep: () => void;
 }) {
   const [snoozeIdx, setSnoozeIdx] = useState(1); // default "Mañana"
-  const isLight = data.itinerarioColor === "#FFE66D" || data.itinerarioColor === "#FFEAA7";
   const xpGain = 10;
 
   return (
