@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 
 const itinerarios = [
   { icono: "🎂", titulo: "Acabo de cumplir 18 años", color: "#FF6B6B", descripcion: "Tu hoja de ruta al llegar a la mayoría de edad", preguntas: [{ texto: "¿Ya tienes DNI?", opciones: ["Sí", "No"] }], pasos: [{ fase: "Documentación obligatoria", items: ["Renueva el DNI — cita en interior.gob.es", "Saca el pasaporte si no tienes — 30€ y 10 años de vigencia", "Considera sacarte el carné de conducir (B)", "Crea tu cuenta en importass.gob.es"] }, { fase: "Finanzas personales", items: ["Abre una cuenta bancaria de adulto sin comisiones", "Aprende la regla 50/30/20: necesidades/ocio/ahorro", "Descarga una app de control de gastos", "Si trabajas: guarda tus nóminas y entiende tu nómina"] }, { fase: "Salud y derechos", items: ["Solicita tu tarjeta sanitaria propia en tu centro de salud", "Pide el Bono Cultural Joven — 400€ en bonoculturajoven.gob.es (plazo: 22 jun - 31 oct)", "Novedad 2026: el bono también vale para instrumentos, material artístico y formación cultural", "Eres penalmente responsable como adulto — conoce tus derechos"] }, { fase: "Educación y futuro", items: ["Solicita beca MEC si vas a la universidad", "Investiga el Carné Joven Europeo para descuentos", "Considera FP si no vas a la universidad", "Aprende habilidades básicas del hogar"] }] },
@@ -22,11 +22,60 @@ const SITUACIONES = [
   { emoji: "💰", label: "Quiero ahorrar", itinerario: 8 },
 ];
 
+// ─── Snooze durations ────────────────────────────────────────────────────────
+const SNOOZE_OPTIONS = [
+  { label: "1 hora", ms: 60 * 60 * 1000 },
+  { label: "Mañana", ms: 24 * 60 * 60 * 1000 },
+  { label: "En 3 días", ms: 3 * 24 * 60 * 60 * 1000 },
+];
+
+// Delay before the proactive reminder fires on first load (ms)
+const REMINDER_DELAY_MS = 15_000;
+
 type Pantalla = "terminos" | "hero" | "preguntas" | "app";
 type TabApp = "itinerario" | "chat" | "temas";
 type Mensaje = { rol: "usuario" | "alfred"; texto: string };
 type Intercambio = { pregunta: string; respuesta: string };
 type Recordatorio = { titulo: string; fecha: string; descripcion: string };
+
+// ─── Proactive reminder state ─────────────────────────────────────────────────
+interface ReminderData {
+  item: string;
+  faseLabel: string;
+  pasoNum: number;
+  totalPasos: number;
+  itinerarioTitulo: string;
+  itinerarioColor: string;
+  itinerarioIcono: string;
+}
+
+function getNextPendingStep(
+  itIdx: number,
+  progreso: Record<string, boolean>
+): ReminderData | null {
+  const it = itinerarios[itIdx];
+  let globalIdx = 0;
+  const total = it.pasos.reduce((a, f) => a + f.items.length, 0);
+  for (let fi = 0; fi < it.pasos.length; fi++) {
+    const fase = it.pasos[fi];
+    for (let ii = 0; ii < fase.items.length; ii++) {
+      globalIdx++;
+      const key = `${itIdx}-${fi}-${ii}`;
+      if (!progreso[key]) {
+        return {
+          item: fase.items[ii],
+          faseLabel: fase.fase,
+          pasoNum: globalIdx,
+          totalPasos: total,
+          itinerarioTitulo: it.titulo,
+          itinerarioColor: it.color,
+          itinerarioIcono: it.icono,
+        };
+      }
+    }
+  }
+  return null; // All done
+}
 
 function generarICS(r: Recordatorio): void {
   const fecha = r.fecha.replace(/-/g, "");
@@ -122,6 +171,141 @@ function IntercambioColapsado({ intercambio, index, formRec, setFormRec }: { int
   );
 }
 
+// ─── Proactive Reminder Modal ─────────────────────────────────────────────────
+function ReminderModal({
+  data,
+  onDismiss,
+  onSnooze,
+  onAsk,
+  onGoToStep,
+}: {
+  data: ReminderData;
+  onDismiss: () => void;
+  onSnooze: (ms: number) => void;
+  onAsk: (q: string) => void;
+  onGoToStep: () => void;
+}) {
+  const [snoozeIdx, setSnoozeIdx] = useState(1); // default "Mañana"
+  const isLight = data.itinerarioColor === "#FFE66D" || data.itinerarioColor === "#FFEAA7";
+  const xpGain = 10;
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.55)",
+        zIndex: 3000,
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "center",
+        padding: "0 0 0 0",
+      }}
+      onClick={e => { if (e.target === e.currentTarget) onDismiss(); }}
+    >
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: "22px 22px 0 0",
+          padding: "22px 20px 32px",
+          width: "100%",
+          maxWidth: 480,
+          animation: "slideUp 0.3s ease",
+          position: "relative",
+        }}
+      >
+        {/* Close */}
+        <button
+          onClick={onDismiss}
+          style={{ position: "absolute", top: 14, right: 16, width: 28, height: 28, borderRadius: "50%", background: "#f0f0f0", border: "none", cursor: "pointer", fontSize: 14, color: "#666", display: "flex", alignItems: "center", justifyContent: "center" }}
+          aria-label="Cerrar recordatorio"
+        >✕</button>
+
+        {/* Pulse header */}
+        <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 14 }}>
+          <div style={{ position: "relative", width: 10, height: 10 }}>
+            <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#FF6B6B" }} />
+          </div>
+          <span style={{ fontSize: 10, fontWeight: "600", color: "#888", textTransform: "uppercase" as const, letterSpacing: 0.5 }}>ALFRED · recordatorio</span>
+        </div>
+
+        <div style={{ fontSize: 18, fontWeight: "700", color: "#1a1a1a", lineHeight: 1.3, marginBottom: 10 }}>
+          Tienes un paso pendiente en tu itinerario
+        </div>
+
+        {/* Step pill */}
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "#FFF0F0", border: "1px solid #FF6B6B33", borderRadius: 8, padding: "5px 10px", fontSize: 11, color: "#cc4444", fontWeight: "500", marginBottom: 14 }}>
+          Paso {data.pasoNum} de {data.totalPasos} · {data.faseLabel}
+        </div>
+
+        {/* Task highlight */}
+        <div style={{ background: "#FFF5F5", borderRadius: 14, border: "1px solid #FF6B6B22", padding: "14px 16px", marginBottom: 14 }}>
+          <div style={{ fontSize: 11, color: "#888", marginBottom: 5 }}>Siguiente tarea</div>
+          <div style={{ fontSize: 15, fontWeight: "700", color: "#1a1a1a", marginBottom: 4 }}>{data.item}</div>
+          <div style={{ fontSize: 12, color: "#636e72", lineHeight: 1.5 }}>
+            Puedo ayudarte con los detalles — toca "Preguntar a ALFRED" si tienes dudas.
+          </div>
+        </div>
+
+        {/* Context strip */}
+        <div style={{ background: "#FAFAFA", borderRadius: 12, padding: "10px 13px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: `${data.itinerarioColor}33`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{data.itinerarioIcono}</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 12, fontWeight: "600", color: "#1a1a1a" }}>{data.itinerarioTitulo}</div>
+            <div style={{ fontSize: 11, color: "#888" }}>Paso {data.pasoNum} de {data.totalPasos}</div>
+          </div>
+          <div style={{ background: "#F5F0FF", color: "#7F77DD", borderRadius: 8, padding: "3px 9px", fontSize: 11, fontWeight: "600", flexShrink: 0 }}>+{xpGain} XP</div>
+        </div>
+
+        {/* Snooze */}
+        <div style={{ fontSize: 11, color: "#888", marginBottom: 7 }}>Posponer recordatorio</div>
+        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+          {SNOOZE_OPTIONS.map((opt, i) => (
+            <button
+              key={opt.label}
+              onClick={() => setSnoozeIdx(i)}
+              style={{
+                flex: 1,
+                padding: "8px 4px",
+                borderRadius: 10,
+                border: snoozeIdx === i ? `1.5px solid #FF6B6B` : "1px solid #eee",
+                background: snoozeIdx === i ? "#FFF0F0" : "none",
+                color: snoozeIdx === i ? "#cc4444" : "#636e72",
+                fontSize: 12,
+                fontWeight: snoozeIdx === i ? "600" : "400",
+                cursor: "pointer",
+                transition: "all 0.15s",
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Actions */}
+        <button
+          onClick={onGoToStep}
+          style={{ width: "100%", padding: "14px", borderRadius: 14, background: "#FF6B6B", color: "#fff", border: "none", fontSize: 15, fontWeight: "700", cursor: "pointer", marginBottom: 10 }}
+        >
+          Ir al paso ahora →
+        </button>
+        <button
+          onClick={() => onAsk(`¿Cómo hago este paso?: ${data.item}`)}
+          style={{ width: "100%", padding: "12px", borderRadius: 14, background: "none", border: "1.5px solid #eee", color: "#1a1a1a", fontSize: 14, fontWeight: "600", cursor: "pointer", marginBottom: 8 }}
+        >
+          💬 Preguntarle a ALFRED sobre este paso
+        </button>
+        <button
+          onClick={() => onSnooze(SNOOZE_OPTIONS[snoozeIdx].ms)}
+          style={{ width: "100%", padding: "10px", borderRadius: 14, background: "none", border: "none", color: "#aaa", fontSize: 13, cursor: "pointer" }}
+        >
+          Recordármelo {SNOOZE_OPTIONS[snoozeIdx].label.toLowerCase()}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [pantalla, setPantalla] = useState<Pantalla>("terminos");
   const [tabApp, setTabApp] = useState<TabApp>("itinerario");
@@ -160,6 +344,72 @@ function App() {
   const recognitionRef = useRef<any>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // ─── Proactive reminder state ───────────────────────────────────────────────
+  const [reminderData, setReminderData] = useState<ReminderData | null>(null);
+  const [reminderVisible, setReminderVisible] = useState(false);
+  const reminderTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Track snooze: timestamp after which we may show again
+  const snoozedUntilRef = useRef<number>(0);
+
+  // Schedule or reschedule the reminder timer
+  const scheduleReminder = useCallback((delayMs = REMINDER_DELAY_MS) => {
+    if (reminderTimerRef.current) clearTimeout(reminderTimerRef.current);
+    reminderTimerRef.current = setTimeout(() => {
+      if (Date.now() < snoozedUntilRef.current) return;
+      const data = getNextPendingStep(itinerarioActivo, itinerarioProgreso);
+      if (data) {
+        setReminderData(data);
+        setReminderVisible(true);
+      }
+    }, delayMs);
+  }, [itinerarioActivo, itinerarioProgreso]);
+
+  // Fire reminder when user enters the app
+  useEffect(() => {
+    if (pantalla === "app") {
+      scheduleReminder(REMINDER_DELAY_MS);
+    }
+    return () => {
+      if (reminderTimerRef.current) clearTimeout(reminderTimerRef.current);
+    };
+  }, [pantalla, scheduleReminder]);
+
+  // Handlers for the reminder modal
+  function handleReminderDismiss() {
+    setReminderVisible(false);
+  }
+
+  function handleReminderSnooze(ms: number) {
+    snoozedUntilRef.current = Date.now() + ms;
+    setReminderVisible(false);
+    scheduleReminder(ms);
+  }
+
+  function handleReminderAsk(q: string) {
+    setReminderVisible(false);
+    preguntaRapida(q);
+  }
+
+  function handleReminderGoToStep() {
+    setReminderVisible(false);
+    setTabApp("itinerario");
+    // Open the right fase
+    if (reminderData) {
+      const it = itinerarios[itinerarioActivo];
+      let count = 0;
+      for (let fi = 0; fi < it.pasos.length; fi++) {
+        for (let ii = 0; ii < it.pasos[fi].items.length; ii++) {
+          count++;
+          if (count === reminderData.pasoNum) {
+            setFaseAbierta(fi);
+            return;
+          }
+        }
+      }
+    }
+  }
+
+  // ─── Speech recognition ─────────────────────────────────────────────────────
   useEffect(() => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SR) {
@@ -289,6 +539,7 @@ function App() {
 
   const CCAAS = ["Madrid","Catalunya","Andalucía","Comunitat Valenciana","País Vasco","Galicia","Castilla y León","Canarias","Castilla-La Mancha","Murcia","Aragón","Extremadura","Asturias","Navarra","Cantabria","La Rioja","Baleares","Ceuta","Melilla"];
 
+  // ─── Pantalla terminos ────────────────────────────────────────────────────────
   if (pantalla === "terminos") {
     return (
       <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:"#fff", padding:20 }}>
@@ -327,6 +578,7 @@ function App() {
     );
   }
 
+  // ─── Pantalla hero ─────────────────────────────────────────────────────────
   if (pantalla === "hero") {
     return (
       <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", background:"#fff", padding:"20px" }}>
@@ -372,6 +624,7 @@ function App() {
     );
   }
 
+  // ─── CCAA selector ────────────────────────────────────────────────────────
   if (mostrarCCAA) {
     const it = itinerarios[itinerarioActivo];
     return (
@@ -403,6 +656,7 @@ function App() {
     );
   }
 
+  // ─── Pantalla preguntas ───────────────────────────────────────────────────
   if (pantalla === "preguntas" && !mostrarCCAA) {
     const it = itinerarios[itinerarioActivo];
     const pregObj = it.preguntas[0];
@@ -447,6 +701,7 @@ function App() {
     );
   }
 
+  // ─── Main app ─────────────────────────────────────────────────────────────
   const it = itinerarios[itinerarioActivo];
   const totalPasos = it.pasos.reduce((a, f) => a + f.items.length, 0);
   const completados = it.pasos.reduce((a, f, fi) => a + f.items.filter((_, ii) => itinerarioProgreso[`${itinerarioActivo}-${fi}-${ii}`]).length, 0);
@@ -466,12 +721,24 @@ function App() {
         @keyframes xpFloat{0%{opacity:0;transform:translateY(0) scale(0.6)}40%{opacity:1;transform:translateY(-16px) scale(1.1)}100%{opacity:0;transform:translateY(-32px) scale(0.8)}}
         @keyframes ripple{from{transform:scale(0);opacity:0.5}to{transform:scale(4);opacity:0}}
         @keyframes demoArrow{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+        @keyframes reminderPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,107,107,0.4)}50%{box-shadow:0 0 0 8px rgba(255,107,107,0)}}
         .check-bounce{animation:checkPop 0.35s cubic-bezier(.36,.07,.19,.97)}
         .ripple-el{position:absolute;border-radius:50%;background:rgba(255,255,255,0.45);width:40px;height:40px;pointer-events:none;animation:ripple 0.55s ease-out forwards}
         .alfred-link{color:#FF6B6B;font-weight:500;text-decoration:none;border-bottom:1px solid #FF6B6B44;padding-bottom:1px}
         .alfred-link:hover{border-bottom-color:#FF6B6B;background:#FFF5F5;border-radius:3px}
         @media(max-width:768px){.fases-grid{grid-template-columns:1fr!important}.chat-input-row{gap:6px!important}.chat-input-row input{font-size:16px!important}.tabs-bar{padding:0 8px!important}.tab-content{padding:16px!important}}
       `}</style>
+
+      {/* ── PROACTIVE REMINDER MODAL ── */}
+      {reminderVisible && reminderData && (
+        <ReminderModal
+          data={reminderData}
+          onDismiss={handleReminderDismiss}
+          onSnooze={handleReminderSnooze}
+          onAsk={handleReminderAsk}
+          onGoToStep={handleReminderGoToStep}
+        />
+      )}
 
       {/* HEADER */}
       <div style={{ padding:"12px 20px", display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:"0.5px solid #eee", flexShrink:0, background:"#fff" }}>
@@ -483,6 +750,18 @@ function App() {
         <div style={{ display:"flex", gap:6, alignItems:"center" }}>
           {situacionElegida && <div style={{ background:"#f5f5f5", borderRadius:8, padding:"4px 10px", fontSize:11, color:"#555", fontWeight:"500", maxWidth:150, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{it.icono} {ccaaUsuario && ccaaUsuario !== "No especificada" ? ccaaUsuario : situacionElegida}</div>}
           <div style={{ background:"#F5F0FF", color:"#7F77DD", borderRadius:8, padding:"4px 10px", fontSize:11, fontWeight:"600" }}>⚡ {Object.values(itinerarioProgreso).filter(Boolean).length * 10} XP</div>
+          {/* Bell button to manually trigger reminder */}
+          <button
+            onClick={() => {
+              const data = getNextPendingStep(itinerarioActivo, itinerarioProgreso);
+              if (data) { setReminderData(data); setReminderVisible(true); }
+            }}
+            style={{ background:"#FFF5F5", color:"#FF6B6B", borderRadius:"50%", width:32, height:32, fontSize:16, border:"1px solid #FF6B6B33", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}
+            aria-label="Ver recordatorio del itinerario"
+            title="Ver próximo paso pendiente"
+          >
+            🔔
+          </button>
           <button onClick={() => setMostrarSOS(true)} style={{ background:"#FF6B6B", color:"#fff", borderRadius:"50%", width:32, height:32, fontSize:18, border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(255,107,107,0.4)", flexShrink:0 }}>🆘</button>
           <div style={{ background:"#FF6B6B", color:"#fff", borderRadius:8, padding:"4px 10px", fontSize:11, fontWeight:"500" }}>IA · Beta</div>
         </div>
