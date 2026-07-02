@@ -1,5 +1,25 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 
+// Confetti loaded at runtime from CDN — no npm install needed
+function fireConfetti(color: string) {
+  const script = document.getElementById("confetti-script");
+  function run() {
+    const confetti = (window as any).confetti;
+    if (!confetti) return;
+    confetti({ particleCount: 120, spread: 80, origin: { y: 0.55 },
+      colors: [color, "#FF6B6B", "#FFE66D", "#7F77DD", "#00B894", "#ffffff"] });
+  }
+  if (!(window as any).confetti) {
+    if (!script) {
+      const s = document.createElement("script");
+      s.id = "confetti-script";
+      s.src = "https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js";
+      s.onload = run;
+      document.head.appendChild(s);
+    }
+  } else { run(); }
+}
+
 const itinerarios = [
   { icono: "🎂", titulo: "Acabo de cumplir 18 años", color: "#FF6B6B", descripcion: "Tu hoja de ruta al llegar a la mayoría de edad", preguntas: [{ texto: "¿Ya tienes DNI?", opciones: ["Sí", "No"] }], pasos: [{ fase: "Documentación obligatoria", items: ["Renueva el DNI — cita en interior.gob.es", "Saca el pasaporte si no tienes — 30€ y 10 años de vigencia", "Considera sacarte el carné de conducir (B)", "Crea tu cuenta en importass.gob.es"] }, { fase: "Finanzas personales", items: ["Abre una cuenta bancaria de adulto sin comisiones", "Aprende la regla 50/30/20: necesidades/ocio/ahorro", "Descarga una app de control de gastos", "Si trabajas: guarda tus nóminas y entiende tu nómina"] }, { fase: "Salud y derechos", items: ["Solicita tu tarjeta sanitaria propia en tu centro de salud", "Pide el Bono Cultural Joven — 400€ en bonoculturajoven.gob.es (plazo: 22 jun - 31 oct)", "Novedad 2026: el bono también vale para instrumentos, material artístico y formación cultural", "Eres penalmente responsable como adulto — conoce tus derechos"] }, { fase: "Educación y futuro", items: ["Solicita beca MEC si vas a la universidad", "Investiga el Carné Joven Europeo para descuentos", "Considera FP si no vas a la universidad", "Aprende habilidades básicas del hogar"] }] },
   { icono: "🎓", titulo: "Llego a la Universidad", color: "#4ECDC4", descripcion: "Todo lo que necesitas al empezar tus estudios", preguntas: [{ texto: "¿Te mudas de ciudad para estudiar?", opciones: ["Sí, me mudo", "No, sigo en casa", "No lo sé aún"] }], pasos: [{ fase: "Antes de empezar", items: ["Matriculación oficial y pago de tasas", "Solicitar beca MEC en becas.educacion.gob.es", "Abrir cuenta bancaria sin comisiones", "Tramitar tarjeta de transporte joven"] }, { fase: "Primeras semanas", items: ["Empadronarte si te mudas de ciudad", "Solicitar tarjeta sanitaria", "Activar correo universitario y plataformas", "Solicitar el Bono Cultural si cumples 18 años este año"] }, { fase: "Durante el curso", items: ["Declaración de la renta si trabajas", "Renovar la beca cada año", "Solicitar Erasmus si quieres estudiar fuera"] }] },
@@ -209,7 +229,7 @@ function ReminderModal({
           padding: "22px 20px 32px",
           width: "100%",
           maxWidth: 480,
-          animation: "slideUp 0.3s ease",
+          animation: "sheetIn 0.45s cubic-bezier(0.34,1.56,0.64,1)",
           position: "relative",
         }}
       >
@@ -322,6 +342,8 @@ function App() {
   const [ultimoMarcado, setUltimoMarcado] = useState<{key:string;item:string;siguienteItem:string|null;faseCompleta:boolean;tituloFase:string}|null>(null);
   const [celebracion, setCelebracion] = useState<string|null>(null);
   const [xpToast, setXpToast] = useState<string|null>(null);
+  const [displayXp, setDisplayXp] = useState<number>(0);
+  const xpAnimRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [temaActivo, setTemaActivo] = useState<string|null>(null);
   const [ccaaUsuario, setCcaaUsuario] = useState<string>("");
   const [mostrarCCAA, setMostrarCCAA] = useState(false);
@@ -408,6 +430,26 @@ function App() {
     }
   }
 
+  // ─── Animate XP counter ──────────────────────────────────────────────────────
+  useEffect(() => {
+    const target = Object.values(itinerarioProgreso).filter(Boolean).length * 10;
+    if (xpAnimRef.current) clearInterval(xpAnimRef.current);
+    if (target === displayXp) return;
+    const step = target > displayXp ? 10 : -10;
+    xpAnimRef.current = setInterval(() => {
+      setDisplayXp(prev => {
+        const next = prev + step;
+        if ((step > 0 && next >= target) || (step < 0 && next <= target)) {
+          if (xpAnimRef.current) clearInterval(xpAnimRef.current);
+          return target;
+        }
+        return next;
+      });
+    }, 40);
+    return () => { if (xpAnimRef.current) clearInterval(xpAnimRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itinerarioProgreso]);
+
   // ─── Speech recognition ─────────────────────────────────────────────────────
   useEffect(() => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -470,12 +512,16 @@ function App() {
         const faseDone = fase.items.filter((_, idx) => idx === ii ? true : !!next[`${itinerarioActivo}-${fi}-${idx}`]).length;
         const faseCompleta = faseDone === fase.items.length;
         setUltimoMarcado({ key, item, siguienteItem, faseCompleta, tituloFase: fase.fase });
-        if (faseCompleta) { setCelebracion(fase.fase); setTimeout(() => setCelebracion(null), 3500); }
+        if (faseCompleta) {
+          setCelebracion(fase.fase);
+          fireConfetti(itinerarios[itinerarioActivo].color);
+          setTimeout(() => setCelebracion(null), 3500);
+        }
         const totalXp = Object.values(next).filter(Boolean).length * 10;
         const prevXp = Object.values(prev).filter(Boolean).length * 10;
         const hitos: Record<number, string> = { 50:"Ya dominas los trámites básicos", 100:"Eres un experto en vida adulta", 150:"Nivel avanzado conseguido", 200:"ALFRED Master desbloqueado" };
         const hito = [50, 100, 150, 200].find(h => prevXp < h && totalXp >= h);
-        if (hito) { setXpToast(`${hito} · ${hitos[hito]}`); setTimeout(() => setXpToast(null), 3500); }
+        if (hito) { setXpToast(`${hito} · ${hitos[hito]}`); fireConfetti("#7F77DD"); setTimeout(() => setXpToast(null), 3500); }
       } else { setUltimoMarcado(null); }
       return next;
     });
@@ -715,7 +761,7 @@ function App() {
         *{font-family:'Inter','Segoe UI',sans-serif}
         @keyframes pulse{0%,80%,100%{opacity:0.2;transform:scale(0.8)}40%{opacity:1;transform:scale(1.2)}}
         @keyframes fadeIn{from{opacity:0.2;transform:translateX(-4px)}to{opacity:1;transform:translateX(0)}}
-        @keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}} @keyframes sheetIn{0%{transform:translateY(100%);opacity:0}60%{transform:translateY(-6px)}80%{transform:translateY(3px)}100%{transform:translateY(0);opacity:1}}
         @keyframes checkPop{0%{transform:scale(1)}40%{transform:scale(1.4)}70%{transform:scale(0.88)}100%{transform:scale(1)}}
         @keyframes xpFloat{0%{opacity:0;transform:translateY(0) scale(0.6)}40%{opacity:1;transform:translateY(-16px) scale(1.1)}100%{opacity:0;transform:translateY(-32px) scale(0.8)}}
         @keyframes ripple{from{transform:scale(0);opacity:0.5}to{transform:scale(4);opacity:0}}
@@ -748,7 +794,7 @@ function App() {
         </div>
         <div style={{ display:"flex", gap:6, alignItems:"center" }}>
           {situacionElegida && <div style={{ background:"#f5f5f5", borderRadius:8, padding:"4px 10px", fontSize:11, color:"#555", fontWeight:"500", maxWidth:150, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{it.icono} {ccaaUsuario && ccaaUsuario !== "No especificada" ? ccaaUsuario : situacionElegida}</div>}
-          <div style={{ background:"#F5F0FF", color:"#7F77DD", borderRadius:8, padding:"4px 10px", fontSize:11, fontWeight:"600" }}>⚡ {Object.values(itinerarioProgreso).filter(Boolean).length * 10} XP</div>
+          <div style={{ background:"#F5F0FF", color:"#7F77DD", borderRadius:8, padding:"4px 10px", fontSize:11, fontWeight:"600", transition:"all 0.2s", minWidth:52, textAlign:"center" }}>⚡ {displayXp} XP</div>
           {/* Bell button to manually trigger reminder */}
           <button
             onClick={() => {
@@ -1030,7 +1076,7 @@ function App() {
                         const key=`${itinerarioActivo}-${fi}-${ii}`; const checked=!!itinerarioProgreso[key]; const isUltimo=ultimoMarcado?.key===key&&checked;
                         return (
                           <div key={ii} style={{ marginBottom:10 }}>
-                            <div onClick={(e) => { actualizarProgreso(key,!checked,item,fi,ii); if (!checked) { const circle=(e.currentTarget as HTMLElement).querySelector(".check-circle") as HTMLElement; if(circle){circle.classList.remove("check-bounce");void circle.offsetWidth;circle.classList.add("check-bounce");} const xp=document.createElement("div"); xp.style.cssText="position:absolute;right:8px;top:0;font-size:11px;font-weight:700;color:#7F77DD;pointer-events:none;animation:xpFloat 0.85s ease forwards;z-index:10"; xp.textContent="+10 XP"; (e.currentTarget as HTMLElement).closest("div")?.appendChild(xp); setTimeout(()=>xp.remove(),900); } }}
+                            <div onClick={(e) => { actualizarProgreso(key,!checked,item,fi,ii); if (!checked) { const circle=(e.currentTarget as HTMLElement).querySelector(".check-circle") as HTMLElement; if(circle){circle.classList.remove("check-bounce");void circle.offsetWidth;circle.classList.add("check-bounce");} const xp=document.createElement("div"); xp.style.cssText="position:absolute;right:8px;top:-4px;font-size:14px;font-weight:700;color:#7F77DD;pointer-events:none;animation:xpFloat 0.9s cubic-bezier(0.22,1,0.36,1) forwards;z-index:10;text-shadow:0 1px 4px rgba(127,119,221,0.3)"; xp.textContent="+10 XP"; (e.currentTarget as HTMLElement).closest("div")?.appendChild(xp); setTimeout(()=>xp.remove(),900); } }}
                               style={{ display:"flex", gap:10, cursor:"pointer", alignItems:"flex-start", position:"relative" }}>
                               <div className="check-circle" style={{ width:20, height:20, borderRadius:"50%", flexShrink:0, marginTop:1, border:checked?"none":"2px solid #ddd", background:checked?it.color:"transparent", display:"flex", alignItems:"center", justifyContent:"center", transition:"background 0.2s,border 0.2s" }}>
                                 {checked && <span style={{ color:it.color==="FFE66D"?"#2D3436":"#fff", fontSize:11, fontWeight:"700" }}>✓</span>}
